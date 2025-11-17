@@ -13,10 +13,10 @@ const sliderImages = [
 
 const Hero = () => {
     return (
-        <div className="relative w-full h-[100vh] overflow-hidden">
+        <div className="relative w-full h-[90vh] overflow-hidden">
             {/* 🔹 Infinite Scrolling Background */}
             <div className="absolute top-0 left-0 w-full h-full -z-10 overflow-hidden">
-                <div className="flex animate-slide-slow w-max mt-6 md:mt-0 items-start h-full bg-black/70 blur-[1px]">
+                <div className="flex animate-slide-slow w-max  md:mt-0 items-center md:items-start h-full bg-black/70 blur-[1px]">
                     {[...sliderImages, ...sliderImages].map((image, index) => (
                         <div key={index} className="mx-5 flex-shrink-0">
                             <Image
@@ -25,7 +25,7 @@ const Hero = () => {
                                 width={300}
                                 loading="lazy"
                                 height={500}
-                                className=" rounded-xl w-[300px] h-[500px] md:w-[300px] md:h-[500px] object-cover"
+                                className=" rounded-xl w-[250px] h-[500px] md:w-[300px] md:h-[500px] object-cover"
                             />
                         </div>
                     ))}

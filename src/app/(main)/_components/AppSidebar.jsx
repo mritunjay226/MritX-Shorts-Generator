@@ -55,7 +55,7 @@ const AppSidebar = () => {
         <div>
           <div className='flex flex-col items-start w-full mt-5'>
             <Link href={'/'} className='flex items-center'>
-            <Image src={'/MritXLogo.png'} alt='logo' width={100} height={40} />
+            <Image src={'/MritXLogoF.png'} alt='logo' width={100} height={40} />
             
             </Link>
           <h2 className='text-lg text-gray-400 text-center mt-1'>AI Short Video Generator</h2>

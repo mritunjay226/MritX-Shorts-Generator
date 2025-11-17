@@ -38,7 +38,7 @@ export default function CreateNewVideo() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br  relative overflow-hidden flex flex-col items-center justify-center p-6 text-white">
+    <div className="min-h-screen bg-gradient-to-br  relative overflow-hidden flex flex-col items-center justify-center text-white">
       
       {/* Animated Gradient Orbs */}
       <motion.div
