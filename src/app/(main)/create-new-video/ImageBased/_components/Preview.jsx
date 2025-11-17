@@ -7,10 +7,10 @@ const Preview = ({ formData }) => {
 
   if (!selectedVideoStyle) {
     return (
-      <div className="w-full h-[70vh] flex items-center justify-center rounded-lg border border-dashed border-gray-400">
+      <div className="w-full h-[70vh] flex items-center justify-center flex-col px-4 rounded-lg border border-dashed border-gray-400">
       <h2 className="mb-3 text-2xl font-semibold">Preview</h2>
 
-        <p className="text-gray-500 text-lg font-medium">
+        <p className="text-gray-500 text-lg font-medium text-center">
           Select a video style to see the preview
         </p>
       </div>

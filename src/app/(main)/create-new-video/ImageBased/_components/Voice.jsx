@@ -38,8 +38,8 @@ const Voice = ({ onHandleInputChange }) => {
         Select voice for your video
       </p>
 
-      <ScrollArea className="h-[200px] w-full">
-        <div className="grid grid-cols-2 gap-3">
+      <ScrollArea className="h-[300px] md:h-[200px] w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {voiceOptions.map((voice, index) => {
             const isSelected = selectedVoice === voice.value;
             return (

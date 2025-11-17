@@ -35,7 +35,7 @@ const Captions = ({ onHandleInputChange }) => {
       <h2 className='flex items-center gap-2'><CaptionsIcon className='text-green-600'/>Caption Style</h2>
       <p className='text-sm text-gray-400 mb-1'>Select caption style</p>
     
-        <div className='flex flex-wrap gap-4'>
+        <div className='grid grid-cols-2 gap-4'>
             {options.map((option,index)=>(
                 <div key={index} 
                 className={`p-2 bg-slate-900 hover:border border-gray-300 cursor-pointer rounded-lg
@@ -45,10 +45,12 @@ const Captions = ({ onHandleInputChange }) => {
                     onHandleInputChange('caption',option)
                 }}
                 >
-                    <h2 className={option.style}>{option.name}</h2>
+                    <h2 className={`${option.style} text-sm`}>{option.name}</h2>
                 </div>
             ))}
         </div>
+
+        
     </div>
   )
 }

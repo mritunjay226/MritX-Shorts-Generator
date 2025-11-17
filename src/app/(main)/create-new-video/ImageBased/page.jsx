@@ -65,7 +65,7 @@ const CreateNewVideo = () => {
     <div className='relative'>
       <h2 className='text-3xl'>Create New <span className='text-pink-400 font-bold'>Video</span></h2>
       <div className='grid grid-cols-1 md:grid-cols-3 mt-8 gap-7'>
-        <div className='col-span-2 p-7 rounded-xl mt-8 '>
+        <div className='col-span-2 md:p-7 rounded-xl mt-8 '>
           {/* Topic & SCript */}
           <Topic onHandleInputChange={onHandleInputChange} />
           {/* Video Image Style */}
@@ -76,7 +76,7 @@ const CreateNewVideo = () => {
           <BgMusic onHandleInputChange={onHandleInputChange} />
           {/* Captions */}
           <Captions onHandleInputChange={onHandleInputChange} />
-          <div className='flex flex-col bg-gradient-to-r from-pink-600  to-purple-600 items-center rounded-lg p-2 fixed bottom-5 left-1/2 -translate-x-1/2 max-w-md w-full cursor-pointer '
+          <div className='flex flex-col bg-gradient-to-r from-pink-600  to-purple-600 items-center rounded-lg p-1 md:p-2 fixed bottom-5 left-1/2 -translate-x-1/2 max-w-sm md:max-w-md w-full cursor-pointer '
             disabled={loading}
             onClick={() => GenerateVideo()}
           >
@@ -93,7 +93,7 @@ const CreateNewVideo = () => {
           <Preview formData={formData} />
         </div>
       </div>
-
+<div className='h-[100px]'></div>
     </div>
   )
 }

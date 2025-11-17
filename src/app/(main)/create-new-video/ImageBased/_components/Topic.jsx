@@ -65,10 +65,10 @@ const Topic = ({ onHandleInputChange }) => {
             <TabsTrigger value="your_topic">Your Topic</TabsTrigger>
           </TabsList>
           <TabsContent value="suggestion">
-            <div>
+            <div className='grid grid-cols-2'>
               {Suggestions.map((suggestion, index) => (
                 <Button variant="outline" key={index}
-                  className={`m-1 ${suggestion == selectedTopic && "bg-secondary"}`}
+                  className={`line-clamp-2 m-1 ${suggestion == selectedTopic && "bg-secondary"}`}
                   onClick={() => {
                     setSelectedTopic(suggestion)
                     onHandleInputChange("topic", suggestion)
