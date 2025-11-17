@@ -37,7 +37,7 @@ const Hero = () => {
             {/* 🔹 Foreground Content */}
             <div className="relative z-10 font-sen flex flex-col items-center justify-center h-full px-4 md:px-20 lg:px-36 xl:px-48 text-center">
                 <h2 className="font-normal text-4xl md:text-6xl text-white drop-shadow-lg leading-tight mb-4">
-                    Create Stunning <strong className="font-bold">Shorts, Reels & Ads</strong> with <br /><span className="text-pink-400 tracking-wide">AI powered MritX SG</span>
+                    Create Stunning <strong className="font-bold">Shorts, Reels & Ads</strong> with <br /><span className="text-yellow-400 font-bold tracking-wide">AI powered MritX SG</span>
                 </h2>
                 <p className="mt-4 text-xl md:text-2xl text-gray-300 max-w-3xl">
                     AI generates scripts, images, and voiceovers in seconds. Create, edit,

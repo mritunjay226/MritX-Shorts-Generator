@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {},  // 👈 THIS line stops the error
+
   images: {
     remotePatterns: [
       {
@@ -16,9 +18,9 @@ const nextConfig = {
       },
     ],
   },
+
   webpack: (config, { isServer }) => {
     if (isServer) {
-      // Externalize Remotion compositor packages to prevent bundling
       config.externals = config.externals || [];
       config.externals.push({
         '@remotion/compositor-darwin-arm64': 'commonjs @remotion/compositor-darwin-arm64',

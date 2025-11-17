@@ -243,3 +243,58 @@
     background-position: -200% 0;
   }
 }
+
+/* --- Performance-friendly particle & insect styles --- */
+@keyframes particle-rise {
+  0% { transform: translateY(30vh); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-30vh); opacity: 0; }
+}
+.particle {
+  position: absolute;
+  bottom: -10vh;
+  background: rgba(255,255,255,0.18);
+  border-radius: 9999px;
+  animation-name: particle-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+@keyframes insect-float {
+  0% { transform: translate3d(0,0,0) rotate(0deg); }
+  25% { transform: translate3d(12px,-40px,0) rotate(14deg); }
+  50% { transform: translate3d(-8px,-90px,0) rotate(-8deg); }
+  75% { transform: translate3d(8px,-140px,0) rotate(10deg); }
+  100% { transform: translate3d(0,-200px,0) rotate(0deg); }
+}
+.insect {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateZ(0);
+  animation-name: insect-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+.insect-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(4px);
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .particle, .insect { animation: none !important; }
+}

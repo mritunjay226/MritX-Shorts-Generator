@@ -2,6 +2,7 @@
 import React, { useState } from 'react' // Keep useState for local cards
 import { motion } from 'framer-motion'
 import { PenSquare, Wand2, Download } from 'lucide-react'
+import ShortsGeneratorSection from './ShortsGen'
 
 // Define the steps (no change)
 const stepsData = [
@@ -93,6 +94,7 @@ const HowItWorks = () => {
     // 3. REMOVED the onMouseMove and style props from the <section>
     <section className='py-24 text-white overflow-hidden relative'>
         
+        <ShortsGeneratorSection />
         {/* 4. REMOVED the global spotlight <div> that was here */}
 
         {/* The content container now just needs 'relative' */}
@@ -180,12 +182,12 @@ const HowItWorks = () => {
                             >
                                 {/* --- Icon & Ghost Number --- */}
                                 <div className='relative flex items-center justify-center mb-6'>
-                                    <span 
+                                    {/* <span 
                                         className='absolute text-8xl font-bold text-white/5 -z-10' 
                                         style={{ top: '-1.5rem' }}
                                     >
                                         0{index + 1}
-                                    </span>
+                                    </span> */}
                                     <div className={`p-4 rounded-xl ${step.iconBg} border border-white/10`}>
                                         <step.icon className={`w-10 h-10 ${step.color}`} />
                                     </div>

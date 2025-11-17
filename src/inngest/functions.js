@@ -195,51 +195,51 @@ export const GenerateVideoData = inngest.createFunction(
             }
         )
 
-        // Trigger Remotion Cloud Run Render
-        const RenderVideo = await step.run(
-            "renderVideo",
-            async () => {
-                const services = await getServices({
-                    region: 'us-east1',
-                    compatibleOnly: true,
-                });
+        // // Trigger Remotion Cloud Run Render
+        // const RenderVideo = await step.run(
+        //     "renderVideo",
+        //     async () => {
+        //         const services = await getServices({
+        //             region: 'us-east1',
+        //             compatibleOnly: true,
+        //         });
 
-                const serviceName = services[0].serviceName;
-                const result = await renderMediaOnCloudrun({
-                    serviceName,
-                    region: 'us-east1',
-                    serveUrl: process.env.GCP_SERVE_URL,
-                    composition: 'mritXShorts',
-                    inputProps: {
-                        videoData: {
-                            audioUrl: GenerateAudioFile,
-                            captionJson: GenerateCaptions,
-                            images: GenerateImages
-                        }
-                    },
-                    codec: 'h264',
+        //         const serviceName = services[0].serviceName;
+        //         const result = await renderMediaOnCloudrun({
+        //             serviceName,
+        //             region: 'us-east1',
+        //             serveUrl: process.env.GCP_SERVE_URL,
+        //             composition: 'mritXShorts',
+        //             inputProps: {
+        //                 videoData: {
+        //                     audioUrl: GenerateAudioFile,
+        //                     captionJson: GenerateCaptions,
+        //                     images: GenerateImages
+        //                 }
+        //             },
+        //             codec: 'h264',
 
-                });
-                if (result.type === 'success') {
-                    console.log(result.bucketName)
-                    console.log(result.renderId)
-                }
-                return result?.publicUrl;
-            })
+        //         });
+        //         if (result.type === 'success') {
+        //             console.log(result.bucketName)
+        //             console.log(result.renderId)
+        //         }
+        //         return result?.publicUrl;
+        //     })
 
-        const UpdateDownloadURL = await step.run(
-            "updateDownloadURL",
-            async () => {
-                const result = await convex.mutation(api.videoData.UpdateVideoRecord, {
-                    recordId: recordId,
-                    audioUrl: GenerateAudioFile,
-                    captionJson: GenerateCaptions,
-                    images: GenerateImages,
-                    downloadUrl: RenderVideo
-                });
-                return result;
-            }
-        )
-        return RenderVideo;
+        // const UpdateDownloadURL = await step.run(
+        //     "updateDownloadURL",
+        //     async () => {
+        //         const result = await convex.mutation(api.videoData.UpdateVideoRecord, {
+        //             recordId: recordId,
+        //             audioUrl: GenerateAudioFile,
+        //             captionJson: GenerateCaptions,
+        //             images: GenerateImages,
+        //             downloadUrl: RenderVideo
+        //         });
+        //         return result;
+        //     }
+        // )
+        return "Process Completed Successfully";
     }
 )

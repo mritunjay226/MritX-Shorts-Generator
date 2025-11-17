@@ -12,7 +12,7 @@ const Header = () => {
     <div className='p-4 flex items-center justify-between bg-black/70'>
       <div className='flex items-center gap-3'>
         <Link href={'/'} className='flex items-center gap-2'>
-          <Image src={'/MritXLogo.png'} alt='logo' width={120} height={60} />
+          <Image src={'/MritXLogoF.png'} alt='logo' width={120} height={60} />
 
         </Link>
       </div>
@@ -24,10 +24,14 @@ const Header = () => {
         ) : (
           <div className="flex items-center gap-3">
             <Link href="/dashboard">
-              <Button>Dashboard</Button>
+              <Button className='text-white flex gap-2 items-center bg-gradient-to-r from-yellow-400 to-orange-600'>Dashboard</Button>
             </Link>
-            <UserButton afterSignOutUrl="/" />
-          </div>
+            
+ <UserButton afterSignOutUrl="/" appearance={{
+      elements: {
+        avatarBox: "w-12 h-12"
+      }
+    }} />          </div>
         )}
       </div>
     </div>

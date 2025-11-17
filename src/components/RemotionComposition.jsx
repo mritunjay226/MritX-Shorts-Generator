@@ -1,84 +1,128 @@
-import React from 'react'
-import { AbsoluteFill, Audio, Img, interpolate, Sequence, useCurrentFrame, useVideoConfig } from 'remotion'
-
+'use client';
+import React from 'react';
+import {
+  AbsoluteFill,
+  Audio,
+  Img,
+  interpolate,
+  Sequence,
+  useCurrentFrame,
+  useVideoConfig
+} from 'remotion';
 
 const RemotionComposition = ({ videoData }) => {
-  
-  const captions = videoData?.captionJson;
-  const imageList = videoData?.images;
-  const { fps } = useVideoConfig();
+  const captions = videoData?.captionJson || [];
+  const images = videoData?.images || [];
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
 
-  const getDurationFrames = () => {
-    const totalDuration = captions[captions?.length - 1]?.end/1000*fps
-    // setDurationInFrame(totalDuration);
-    return totalDuration;
-  }
-  
-  
+  // 🔥 SAFETY CHECKS
+  if (!captions.length || !images.length) return null;
 
-  // ✅ Helper for captions
+  const totalDuration = captions[captions.length - 1].end * fps;
+  const imageDuration = totalDuration / images.length;
+
+  // If invalid duration → return safely
+  if (!imageDuration || imageDuration < 2) return null;
+
+  const fadeDuration = Math.min(15, imageDuration / 6);
+
+  // Caption helper
   const getCurrentCaption = () => {
-    const currentTime = frame / fps;
-    const currentCaption = captions?.find(
-      (item) => currentTime >= item?.start && currentTime <= item?.end
-    );
-    return currentCaption ? currentCaption?.word : '';
+    const currentSec = frame / fps;
+    const active = captions.find(c => currentSec >= c.start && currentSec <= c.end);
+    return active ? active.word : '';
   };
 
-  // ✅ Compute durations
-  const totalDuration = captions?.length ? captions[captions.length - 1]?.end * fps : 0;
-  const imageDuration = imageList?.length ? totalDuration / imageList.length : 0;
-  const fadeDuration = Math.min(15, imageDuration / 6); // fade ~0.5 sec (adjustable)
-
   return (
-    <div>
-    <AbsoluteFill>
-      {imageList?.map((image, index) => {
-        const startTime=(index*getDurationFrames())/imageList.length;
-        const duration=getDurationFrames();
+    <AbsoluteFill style={{ background: 'black' }}>
 
-        const scale = (index) => interpolate(
+      {/* Images */}
+      {images.map((item, index) => {
+        const start = index * imageDuration;
+
+        const inputRange = [
+          start,
+          start + imageDuration / 2,
+          start + imageDuration,
+        ];
+
+        // Avoid identical input ranges
+        if (inputRange[0] === inputRange[1] || inputRange[1] === inputRange[2]) {
+          return null;
+        }
+
+        const scale = interpolate(
           frame,
-          [startTime, startTime+duration/2, startTime+duration],
-          index%2==0 ? [1, 1.8, 1] : [1.8, 1, 1.8],
-          {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}
-        )
-        return(
-          <Sequence key={index} from={startTime} durationInFrames={getDurationFrames()}>
-            <Img
-              src={image}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                transform: `scale(${scale(index)})`,
-              }}
-            />
+          inputRange,
+          index % 2 === 0 ? [1, 1.15, 1] : [1.15, 1, 1.15],
+          { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+        );
+
+        const opacity = interpolate(
+          frame,
+          [
+            start,
+            start + fadeDuration,
+            start + imageDuration - fadeDuration,
+            start + imageDuration
+          ],
+          [0, 1, 1, 0],
+          { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }
+        );
+
+        return (
+          <Sequence key={index} from={start} durationInFrames={imageDuration}>
+            <AbsoluteFill>
+              <Img
+                src={item}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  opacity,
+                  transform: `scale(${scale})`,
+                }}
+              />
+            </AbsoluteFill>
           </Sequence>
-        )
+        );
       })}
 
-    </AbsoluteFill>
+      {/* Captions */}
       <AbsoluteFill
         style={{
-          color:'white',
-          justifyContent:'center',
-          bottom: 50,
-          height: 150,
-          top: undefined,
+          position: 'absolute',
+          bottom: 80,
+          justifyContent: 'center',
           textAlign: 'center',
         }}
       >
-          <h2>{getCurrentCaption()}</h2>
+        <h2
+          style={{
+            fontSize: 48,
+            color: 'white',
+            textShadow: '2px 2px 10px rgba(0,0,0,0.8)',
+          }}
+        >
+          {getCurrentCaption()}
+        </h2>
       </AbsoluteFill>
-      {/* Main narration/audio */}
-      {videoData?.audioUrl && <Audio src={videoData?.audioUrl} volume={1} />}
 
-      {/* Background music */}
-      {videoData?.bgMusic?.src && <Audio src={videoData?.bgMusic?.src} volume={0.1} />}
-    </div>
-  )
-}
+      {/* Main Audio */}
+      {videoData?.audioUrl && (
+        <Audio src={videoData.audioUrl} volume={1} />
+      )}
+
+      {/* Background Music */}
+      {videoData?.bgMusic?.src && (
+        <Sequence from={15}>
+          <Audio src={videoData.bgMusic.src} volume={0.1} />
+        </Sequence>
+      )}
+
+    </AbsoluteFill>
+  );
+};
 
 export default RemotionComposition;

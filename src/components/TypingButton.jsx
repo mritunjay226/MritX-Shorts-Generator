@@ -62,7 +62,7 @@ const TypingButton = () => {
       <Link href="/dashboard">
         <Button
           size="sm"
-          className="rounded-full text-white flex gap-2 items-center bg-gradient-to-r from-red-400 to-violet-600"
+          className="rounded-full text-white flex gap-2 items-center bg-gradient-to-r from-yellow-400 to-orange-600"
         >
           Try now <ArrowRightIcon size={16} />
         </Button>

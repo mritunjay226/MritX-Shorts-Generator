@@ -35,7 +35,7 @@ export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning={true}>
-        <body className={sen.className}>
+        <body className={sen.className} suppressHydrationWarning={true}>
           <ConvexClientProvider>
             {children}
             <Toaster />

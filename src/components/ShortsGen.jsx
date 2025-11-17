@@ -1,0 +1,544 @@
+'use client';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Wand2, Zap, Play, Image, Video, FileText, Mic, Palette, Music, Brain, Hash, TrendingUp, Captions, Pause } from "lucide-react";
+
+const STEPS = [
+  { id: 1, icon: Image, label: "Upload Content", color: "pink", description: "Analyzing your content..." },
+  { id: 2, icon: Brain, label: "AI Processing", color: "amber", description: "Understanding themes..." },
+  { id: 3, icon: Hash, label: "Trend Analysis", color: "orange", description: "Finding viral angles..." },
+  { id: 4, icon: FileText, label: "Script Writing", color: "pink", description: "Creating engaging copy..." },
+  { id: 5, icon: Mic, label: "Voice Over", color: "amber", description: "Recording narration..." },
+  { id: 6, icon: Music, label: "Audio Mix", color: "orange", description: "Adding sound effects..." },
+  { id: 7, icon: Captions, label: "Captions", color: "pink", description: "Syncing subtitles..." },
+  { id: 8, icon: Palette, label: "Visual Effects", color: "amber", description: "Applying animations..." },
+  { id: 9, icon: TrendingUp, label: "Publish Ready", color: "orange", description: "Optimizing for upload..." },
+];
+
+export default function ShortsGeneratorSection() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (currentStep < STEPS.length) {
+        setCurrentStep(prev => prev + 1);
+      } else if (currentStep === STEPS.length && !showVideo) {
+        setShowVideo(true);
+        setTimeout(() => {
+          setIsVideoPlaying(true);
+        }, 200);
+        setTimeout(() => {
+          setCurrentStep(0);
+          setShowVideo(false);
+          setIsVideoPlaying(false);
+        }, 2000);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [currentStep, showVideo]);
+
+  const features = [
+    "AI-Powered Auto Captions",
+    "Smart Cropping & Framing",
+    "Trending Effects Library",
+    "One-Click Background Music",
+    "Auto Hashtag Generation",
+    "Viral Hook Templates"
+  ];
+
+  return (
+    <section className="relative min-h-screen mb-12 bg-black py-10 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-4 overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <motion.div 
+          className="absolute top-20 left-10 w-72 h-72 bg-pink-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1.3, 1, 1.3],
+            opacity: [0.5, 0.3, 0.5],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div
+          className="text-center mb-8 sm:mb-12 md:mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div 
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 mb-4 sm:mb-6"
+            initial={{ scale: 0 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+          >
+            <Video className="text-pink-400" size={14} />
+            <span className="text-pink-400 text-xs sm:text-sm font-semibold">YouTube Shorts Generator</span>
+          </motion.div>
+
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-3 sm:mb-4">
+            Create Viral{" "}
+            <span className="bg-gradient-to-r from-pink-400 to-amber-500 bg-clip-text text-transparent">
+              Shorts in Minutes
+            </span>
+          </h2>
+          <p className="text-white/60 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+            Transform your ideas into stunning TikTok and YouTube Shorts. Our AI handles the heavy lifting from concept to publication.
+          </p>
+        </motion.div>
+
+        {/* Main Content - Split Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center">
+          {/* Left Side - Magic Card Animation */}
+          <div className="relative h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
+            
+            {/* Central Card - Floating */}
+            <motion.div
+              className="relative w-56 sm:w-64 md:w-72 h-[320px] sm:h-[380px] md:h-[500px] rounded-2xl overflow-hidden shadow-2xl border-2 border-pink-500/30"
+              animate={{
+                y: [0, -20, 0],
+                rotateY: showVideo ? [0, 360] : 0,
+              }}
+              transition={{
+                y: {
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+                rotateY: {
+                  duration: 1,
+                }
+              }}
+              style={{ transformStyle: "preserve-3d", willChange: 'transform' }}
+            >
+              {/* Card Glow */}
+              <motion.div
+                className="absolute -inset-1 bg-gradient-to-r from-pink-400 to-amber-500 rounded-2xl blur-lg"
+                style={{ willChange: 'opacity' }}
+                animate={{
+                  opacity: showVideo ? [0.3, 0.8, 0.3] : [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                }}
+              />
+
+              {/* Card Content */}
+              <div className="relative w-full h-full bg-gradient-to-br from-zinc-900 to-black">
+                <AnimatePresence mode="wait">
+                  {!showVideo ? (
+                    <motion.div
+                      key="placeholder"
+                      initial={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex flex-col items-center justify-center p-6"
+                    >
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="mb-4"
+                      >
+                        <Wand2 className="text-pink-400" size={48} />
+                      </motion.div>
+                      <p className="text-white font-semibold text-lg mb-2">Creating Magic...</p>
+                      <motion.p 
+                        className="text-white/60 text-sm text-center"
+                        key={currentStep}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                      >
+                        {STEPS[currentStep - 1]?.description || "Initializing..."}
+                      </motion.p>
+                      
+                      {/* Progress Bar */}
+                      <div className="w-full mt-6">
+                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-gradient-to-r from-pink-400 to-amber-500"
+                            initial={{ width: "0%" }}
+                            animate={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+                            transition={{ duration: 0.5 }}
+                          />
+                        </div>
+                        <p className="text-white/40 text-xs mt-2 text-center">
+                          Step {currentStep} of {STEPS.length}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="video"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="absolute inset-0"
+                    >
+                      <video 
+                        src="https://image01.cf.vidu.studio/vidu/landing-page/travel.a52da706.mp4"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      
+                      {/* Video Playing Indicator */}
+                      <motion.div
+                        className="absolute top-4 right-4 bg-green-500 rounded-full p-2"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: [0, 1.2, 1] }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        {isVideoPlaying ? (
+                          <Play className="text-white" size={20} />
+                        ) : (
+                          <Pause className="text-white" size={20} />
+                        )}
+                      </motion.div>
+
+                      {/* Animated Captions Simulation */}
+                      <motion.div
+                        className="absolute bottom-20 left-4 right-4 bg-black/80 rounded-lg p-3"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: isVideoPlaying ? 1 : 0, y: isVideoPlaying ? 0 : 20 }}
+                        transition={{ delay: 0.8 }}
+                      >
+                        <motion.p 
+                          className="text-white text-sm font-bold text-center"
+                          animate={{ opacity: [1, 0.5, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          Auto-generated captions ✨
+                        </motion.p>
+                      </motion.div>
+
+                      {/* Music Indicator */}
+                      <motion.div
+                        className="absolute top-4 left-4 flex items-center gap-2 bg-black/60 rounded-full px-3 py-2"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 1 }}
+                      >
+                        <Music className="text-pink-400" size={16} />
+                        <motion.div className="flex gap-1">
+                          {[...Array(3)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className="w-1 bg-pink-400 rounded-full"
+                              style={{ willChange: 'height' }}
+                              animate={{ height: [4, 12, 4] }}
+                              transition={{
+                                duration: 0.6,
+                                repeat: Infinity,
+                                delay: i * 0.12,
+                              }}
+                            />
+                          ))}
+                        </motion.div>
+                      </motion.div>
+
+                      {/* Hashtags */}
+                      <motion.div
+                        className="absolute top-16 left-4 right-4"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.2 }}
+                      >
+                        <div className="flex flex-wrap gap-2">
+                          {["#viral", "#trending", "#ai"].map((tag, i) => (
+                            <motion.span
+                              key={tag}
+                              className="text-xs bg-pink-400/20 text-pink-400 px-2 py-1 rounded-full border border-pink-400/30"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 1.2 + i * 0.1 }}
+                            >
+                              {tag}
+                            </motion.span>
+                          ))}
+                        </div>
+                      </motion.div>
+
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div className="flex items-center gap-2 text-white">
+                          <Video size={20} />
+                          <span className="font-semibold">Video Created!</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+
+            {/* Flying Icons Animation */}
+            <AnimatePresence>
+              {STEPS.map((step, index) => {
+                const StepIcon = step.icon;
+                const isActive = currentStep === index + 1;
+                
+                if (!isActive) return null;
+
+                // Alternate directions for variety
+                const fromLeft = index % 2 === 0;
+                const angle = (index / STEPS.length) * Math.PI * 2;
+
+                return (
+                  <motion.div
+                    key={step.id}
+                    className="absolute z-20"
+                    initial={{
+                      x: fromLeft ? -400 : 400,
+                      y: Math.sin(angle) * 200 - 100,
+                      scale: 0,
+                      opacity: 0,
+                      rotate: fromLeft ? -180 : 180,
+                    }}
+                    animate={{
+                      x: [fromLeft ? -400 : 400, 0, 0],
+                      y: [Math.sin(angle) * 200 - 100, 0, 0],
+                      scale: [0, 1.8, 0],
+                      opacity: [0, 1, 0],
+                      rotate: [fromLeft ? -180 : 180, 0, 0],
+                    }}
+                    exit={{
+                      scale: 0,
+                      opacity: 0,
+                    }}
+                    transition={{
+                      duration: 1.2,
+                      ease: "easeInOut",
+                      times: [0, 0.5, 1],
+                    }}
+                  >
+                    <div className="relative">
+                      {/* Glow Effect */}
+                      <motion.div
+                        className={`absolute -inset-4 bg-${step.color}-400 rounded-full blur-2xl`}
+                        animate={{
+                          scale: [1, 1.8, 1],
+                          opacity: [0.3, 0.9, 0.3],
+                        }}
+                        transition={{
+                          duration: 0.9,
+                          repeat: 2,
+                        }}
+                      />
+                      
+                      {/* Icon Container */}
+                      <motion.div 
+                        className={`relative w-20 h-20 bg-gradient-to-br from-pink-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl`}
+                        animate={{
+                          rotate: [0, 360],
+                        }}
+                        transition={{
+                          duration: 1.2,
+                        }}
+                      >
+                        <StepIcon className="text-black" size={36} />
+                      </motion.div>
+
+                      {/* Label with Background */}
+                      <motion.div
+                        className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <span className="text-white text-sm font-bold bg-gradient-to-r from-pink-500/80 to-amber-500/80 px-4 py-2 rounded-full shadow-lg border border-pink-400/30">
+                          {step.label}
+                        </span>
+                      </motion.div>
+                    </div>
+
+                    {/* Enhanced Trail Effect */}
+                    <motion.div
+                      className="absolute inset-0"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: [0, 0.8, 0] }}
+                      transition={{ duration: 0.8 }}
+                    >
+                      {[...Array(4)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className={`absolute w-2 h-2 bg-${step.color}-400 rounded-full`}
+                          style={{ willChange: 'transform, opacity' }}
+                          initial={{ 
+                            x: (fromLeft ? -60 : 60) * (i + 1),
+                            y: Math.sin(i) * 30,
+                            opacity: 0.9,
+                            scale: 1,
+                          }}
+                          animate={{
+                            opacity: 0,
+                            scale: 0,
+                          }}
+                          transition={{
+                            delay: i * 0.08,
+                            duration: 0.4,
+                          }}
+                        />
+                      ))}
+                    </motion.div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+
+            {/* Sparkle Effects Around Card */}
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute"
+                style={{
+                  left: '50%',
+                  top: '50%',
+                  willChange: 'transform, opacity',
+                }}
+                animate={{
+                  x: Math.cos((i * Math.PI * 2) / 8) * 200,
+                  y: Math.sin((i * Math.PI * 2) / 8) * 200,
+                  opacity: [0, 1, 0],
+                  scale: [0, 1.2, 0],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  delay: (currentStep / STEPS.length) * 1.5 + (i * 0.15),
+                  ease: "easeOut",
+                }}
+              >
+                <Sparkles className="text-pink-400" size={20} />
+              </motion.div>
+            ))}
+
+            {/* Celebration Burst when Video Shows */}
+            {showVideo && (
+              <motion.div className="absolute inset-0 pointer-events-none">
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute left-1/2 top-1/2"
+                    style={{ willChange: 'transform, opacity' }}
+                    initial={{ scale: 0, x: 0, y: 0 }}
+                    animate={{
+                      scale: [0, 1, 0],
+                      x: Math.cos((i * Math.PI * 2) / 12) * 300,
+                      y: Math.sin((i * Math.PI * 2) / 12) * 300,
+                      opacity: [1, 0],
+                    }}
+                    transition={{
+                      duration: 1,
+                      ease: "easeOut",
+                    }}
+                  >
+                    <Zap className="text-pink-400" size={24} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Right Side - Features & Info */}
+          <motion.div
+            className="space-y-5 sm:space-y-6 md:space-y-8"
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            <div>
+              <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4">
+                Professional Shorts{" "}
+                <span className="text-pink-400">Made Easy</span>
+              </h3>
+              <p className="text-white/60 text-sm sm:text-base md:text-lg leading-relaxed">
+                No editing experience needed. Let our AI handle scriptwriting, voiceovers, music selection, and effects. Focus on your idea, we handle the production.
+              </p>
+            </div>
+
+            {/* Process Steps */}
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">From Concept to Ready-to-Upload</h4>
+              <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+                Simply upload your idea, footage, or even a rough concept. Our AI analyzes your content and automatically generates a complete, polished short through 9 intelligent production steps.
+              </p>
+              <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+                Get a production-ready short optimized for TikTok, YouTube Shorts, and Instagram Reels. Every element—from pacing to trending sounds—is calibrated for maximum virality and viewer engagement.
+              </p>
+            </div>
+
+            {/* CTA Button */}
+            <motion.button
+              className="group relative w-full px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-black overflow-hidden mt-4 sm:mt-6"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-amber-500" />
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-pink-300 to-amber-400 opacity-0 group-hover:opacity-100"
+                transition={{ duration: 0.3 }}
+              />
+              <span className="relative flex items-center justify-center gap-2 text-sm sm:text-base md:text-lg">
+                <Sparkles size={18} />
+                Create Your First Short
+                <Zap size={18} />
+              </span>
+            </motion.button>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 sm:pt-6">
+              {[
+                { label: "Shorts Created", value: "50K+" },
+                { label: "Avg Views", value: "1.8M" },
+                { label: "Users Love It", value: "98%" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  className="text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
+                >
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-pink-400 to-amber-500 bg-clip-text text-transparent">
+                    {stat.value}
+                  </div>
+                  <div className="text-white/60 text-xs sm:text-sm mt-1">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
