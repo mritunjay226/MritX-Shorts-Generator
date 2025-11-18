@@ -99,7 +99,7 @@ const Faq = () => {
   return (
     <section className='py-24 px-6 bg-black relative overflow-hidden selection:bg-yellow-500 selection:text-black'>
       
-      {/* Background Ambience */}
+      {/* Background Ambience_ */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-yellow-500/5 rounded-full blur-[100px] pointer-events-none" />
 

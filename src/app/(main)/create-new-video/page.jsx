@@ -255,7 +255,7 @@ function VideoCard({ title, description, icon: Icon, accentColor, route, router,
             ))}
           </div>
           
-          {/* Bottom Highlight Line */}
+          {/* Bottom Highlight Lines */}
           <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r ${color.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
         </div>
       </div>

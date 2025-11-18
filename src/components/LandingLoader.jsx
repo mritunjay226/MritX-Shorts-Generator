@@ -49,7 +49,7 @@ const LandingLoader = ({ onLoadingComplete }) => {
         if (isCompleting && onLoadingComplete) onLoadingComplete();
       }}
     >
-      {/* Subtle background pattern to add texture without noise */}
+      {/* Subtle background pattern to add texture without noises */}
       <div className="absolute inset-0 opacity-[0.05]" 
            style={{ backgroundImage: 'radial-gradient(#333 1px, transparent 1px)', backgroundSize: '20px 20px' }} 
       />

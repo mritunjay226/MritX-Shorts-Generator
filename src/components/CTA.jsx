@@ -37,7 +37,7 @@ const Cta = () => {
     setMousePosition({ x: -999, y: -999 });
   };
 
-  // Gold theme color for spotlight
+  // Gold theme color for the spotlight
   const spotlightColor = '#EAB308'; // Yellow-500
 
   return (

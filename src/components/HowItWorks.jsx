@@ -275,11 +275,6 @@ const HowItWorks = () => {
   )
 }
 
-// --- MOCK COMPONENT FOR PREVIEW ONLY ---
-const ShortsGeneratorSection = () => (
-  <div className="w-full max-w-7xl mx-auto px-6 mb-12">
-    <div className="h-0" />
-  </div>
-);
+
 
 export default HowItWorks

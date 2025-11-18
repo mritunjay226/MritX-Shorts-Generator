@@ -49,7 +49,7 @@ export default function Home() {
           <Faq />
           <Cta />
           <Footer />
-          {/* <div className="px-16"><VideoList /></div> */}
+          
         </motion.div>
       )}
     </AnimatePresence>

@@ -14,7 +14,7 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const { isSignedIn } = useUser();
 
-  // Handle scroll effect for glassmorphism intensity
+  // Handle scroll effect for the glassmorphism intensity
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);

@@ -294,7 +294,7 @@
   backdrop-filter: blur(4px);
 }
 
-/* Respect user preference for reduced motion */
+/* Respect user preference for the reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .particle, .insect { animation: none !important; }
 }

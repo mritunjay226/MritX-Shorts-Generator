@@ -111,7 +111,7 @@ const Footer = () => {
             </div>
         </div>
 
-        {/* --- Bottom Bar --- */}
+        {/* ---- Bottom Bar ---- */}
         <div className='relative z-10 max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 
                         flex flex-col md:flex-row justify-between items-center text-xs text-gray-500'>
             <p>&copy; {new Date().getFullYear()} MritX SG. All rights reserved.</p>

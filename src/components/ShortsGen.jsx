@@ -12,7 +12,7 @@ const STEPS = [
   { id: 6, icon: Music, label: "Audio Mix", color: "orange", description: "Adding sound effects..." },
   { id: 7, icon: Captions, label: "Captions", color: "pink", description: "Syncing subtitles..." },
   { id: 8, icon: Palette, label: "Visual Effects", color: "amber", description: "Applying animations..." },
-  { id: 9, icon: TrendingUp, label: "Publish Ready", color: "orange", description: "Optimizing for upload..." },
+  { id: 9, icon: TrendingUp, label: "Video Ready", color: "orange", description: "Optimizing for upload..." },
 ];
 
 export default function ShortsGen() {

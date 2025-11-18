@@ -103,7 +103,7 @@ const TestimonialCard = ({ quote, name, title, image }) => {
 }
 
 
-// --- Main Testimonials Component ---
+// --- Main Testimonials Component ----
 const Testimonials = () => {
     // Split the data for two different rows
     const row1 = testimonialsData.slice(0, Math.ceil(testimonialsData.length / 2))

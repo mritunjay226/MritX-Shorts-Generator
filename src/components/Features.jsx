@@ -80,7 +80,7 @@ const Features = () => {
 
             <div className='relative z-10 px-4 sm:px-6 py-24 max-w-7xl mx-auto'>
                 
-                {/* Header Section (Matching Hero Style) */}
+                {/* Header Section ( Matching Hero Style ) */}
                 <div className="text-center mb-20 space-y-6">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 backdrop-blur-md text-sm font-medium text-yellow-400 shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]">
                         <Sparkles className="w-4 h-4 fill-yellow-400" />

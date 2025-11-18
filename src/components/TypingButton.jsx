@@ -57,7 +57,7 @@ const TypingButton = () => {
         />
       </span>
 
-      {/* 🔹 Button */}
+      {/* 🔹 Buttons */}
       <Link href="/dashboard">
         <Button
           size="sm"

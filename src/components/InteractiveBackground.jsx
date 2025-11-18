@@ -12,7 +12,7 @@ const InteractiveBackground = () => {
     >
       {/* This div will track the mouse.
         We use a radial gradient centered at the mouse position (set by CSS variables)
-        'pointer-events-none' is crucial so it doesn't block clicks on the content.
+        'pointer-events-none' is crucial so it doesn't block clicks on the content..
       */}
       <div 
         className="pointer-events-none absolute inset-0"

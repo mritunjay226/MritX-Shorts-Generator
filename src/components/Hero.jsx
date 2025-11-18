@@ -6,12 +6,12 @@ const sliderImages = [
   { src: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=1000&auto=format&fit=crop", alt: "Social Media Dashboard" },
   { src: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?q=80&w=1000&auto=format&fit=crop", alt: "Video Editing" },
   { src: "https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?q=80&w=1000&auto=format&fit=crop", alt: "Creative Studio" },
-      { src: "/realistic.webp", alt: "slide1" },
-    { src: "/slide1.png", alt: "slide1" },
-    { src: "/slide2.jpg", alt: "slide2" },
-    { src: "/slide3.jpg", alt: "slide3" },
-    { src: "/slide4.jpg", alt: "slide4" },
-    { src: "/slide5.png", alt: "slide5" },
+  { src: "/realistic.webp", alt: "slide1" },
+  { src: "/slide1.png", alt: "slide1" },
+  { src: "/slide2.jpg", alt: "slide2" },
+  { src: "/slide3.jpg", alt: "slide3" },
+  { src: "/slide4.jpg", alt: "slide4" },
+  { src: "/slide5.png", alt: "slide5" },
 ];
 
 // --- INJECTED STYLES ---
