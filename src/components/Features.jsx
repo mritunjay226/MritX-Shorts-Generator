@@ -1,167 +1,150 @@
-// Features.jsx
-import { Captions, Download, Layers, Mic, NotepadText, VideoIcon } from 'lucide-react'
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-// 1. Import our new background
+'use client'
+
+import React, { useState, useRef } from 'react'
+import { Captions, Download, Layers, Mic, NotepadText, Video as VideoIcon, Sparkles } from 'lucide-react'
+
+// ⚠️ IN YOUR EDITOR: Uncomment the line below and delete the 'InteractiveBackground' component defined at the bottom of this file.
 import InteractiveBackground from './InteractiveBackground'
 
+// --- DATA (Gold & Black Theme) ---
 const featuresData = [
     {
         icon: VideoIcon,
-        iconColor: 'text-pink-400',
-        iconBg: 'bg-pink-400/10',
-        color: '#EC4899', 
         title: 'AI-Powered Creation',
-        description: 'Generate scripts, images, and voiceovers in seconds using advanced AI.',
-        // 2. Add a layout property
-        layout: 'col-span-1 md:col-span-2' // This one is larger
+        description: 'Generate scripts, images, and voiceovers in seconds using advanced AI models.',
+        layout: 'col-span-1 md:col-span-2' 
     },
     {
         icon: NotepadText,
-        iconColor: 'text-purple-400',
-        iconBg: 'bg-purple-400/10',
-        color: '#A855F7',
         title: 'Multiple Script Options',
-        description: 'Receive multiple script options to choose from, ensuring your content is unique.',
-        layout: 'col-span-1' // This one is standard
+        description: 'Receive varied script drafts to ensure unique and engaging content.',
+        layout: 'col-span-1' 
     },
     {
         icon: Mic,
-        iconColor: 'text-blue-400',
-        iconBg: 'bg-blue-400/10',
-        color: '#3B82F6',
         title: 'Custom Voiceovers',
-        description: 'Select from a variety of AI-generated voices to match your short\'s tone.',
-        layout: 'col-span-1' // Standard
+        description: 'Select from a library of hyper-realistic AI voices to match your tone.',
+        layout: 'col-span-1' 
     },
     {
         icon: Layers,
-        iconColor: 'text-green-400',
-        iconBg: 'bg-green-400/10',
-        color: '#22C55E',
-        title: 'Variety of Styles',
-        description: 'Choose from different video styles to create visually appealing shorts that stand out.',
-        layout: 'col-span-1 md:col-span-1' // Larger
+        title: 'Cinematic Styles',
+        description: 'Choose from varied video styles to create visually stunning shorts.',
+        layout: 'col-span-1' 
     },
     {
         icon: Captions,
-        iconColor: 'text-yellow-400',
-        iconBg: 'bg-yellow-400/10',
-        color: '#EAB308', 
-        title: 'Auto Subtitles',
-        description: 'Automatically generate accurate subtitles with different styles to enhance engagement.',
-        layout: 'col-span-1' // Standard
+        title: 'Smart Subtitles',
+        description: 'Auto-generate accurate, animated subtitles to boost retention.',
+        layout: 'col-span-1' 
     },
-      {
+    {
         icon: Download,
-        iconColor: 'text-red-400',
-        iconBg: 'bg-red-400/10',
-        color: '#EF4444', // red-400
-        title: 'Easy Download & Share',
-        description: 'Quickly download your AI-generated shorts and share them across multiple platforms with ease.',
-        layout: 'col-span-1 md:col-span-2' // Standard
-        
+        title: 'Instant Export',
+        description: 'One-click download optimized for TikTok, Reels, and YouTube Shorts.',
+        layout: 'col-span-1 md:col-span-2' 
     }
-    // We removed the 6th item to make the grid 2+1 and 1+2.
-    // You can add it back and adjust the layout as needed (e.g., make the last one col-span-3)
 ]
 
-const titleVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
-}
-
-const gridVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-}
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
-}
-
 const Features = () => {
-    // This state will track the mouse position
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const containerRef = useRef(null);
 
     const handleMouseMove = (e) => {
-        // e.currentTarget is the element the listener is attached to (our main div)
-        const rect = e.currentTarget.getBoundingClientRect();
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
         setMousePosition({ 
             x: e.clientX - rect.left, 
             y: e.clientY - rect.top 
         });
     };
 
+    // --- Custom CSS for Gold Glow Effects --
     return (
-        // 1. Add the onMouseMove listener to the main container
         <div 
-            className='relative min-h-screen text-white overflow-hidden'
+            ref={containerRef}
+            className='relative min-h-screen bg-black text-white overflow-hidden feature-container font-sans selection:bg-yellow-500 selection:text-black'
             onMouseMove={handleMouseMove}
-            // 2. Pass the mouse position to the CSS variables
             style={{
                 '--mouse-x': `${mousePosition.x}px`,
                 '--mouse-y': `${mousePosition.y}px`,
             }}
         >
-            <InteractiveBackground /> {/* Our new background */}
             
-            <div className='relative z-10 px-6 py-20'>
-                <motion.h1 
-                    className='text-3xl md:text-5xl text-center font-bold mb-12 text-shadow-lg'
-                    variants={titleVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.5 }}
-                >
-                    Everything You Need to 
-                    {/* 3. Add classes for the animated gradient text */}
-                    <span className='animated-gradient-text'> Create AI Clips</span>
-                </motion.h1>
+            
+            {/* Using the embedded background for preview */}
+            <InteractiveBackground />
+            
+            {/* Dark Overlay to ensure text legibility over interactive background */}
+            <div className="absolute inset-0 bg-black/60 z-0 pointer-events-none" />
 
-                {/* 4. Use `grid-cols-1 md:grid-cols-3` for the bento layout */}
-                <motion.div 
-                    className='grid grid-cols-1 md:grid-cols-4  p-4 gap-6 md:gap-8 max-w-6xl mx-auto'
-                    variants={gridVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                >
+            <div className='relative z-10 px-4 sm:px-6 py-24 max-w-7xl mx-auto'>
+                
+                {/* Header Section (Matching Hero Style) */}
+                <div className="text-center mb-20 space-y-6">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 backdrop-blur-md text-sm font-medium text-yellow-400 shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]">
+                        <Sparkles className="w-4 h-4 fill-yellow-400" />
+                        <span>MritX SG Features</span>
+                    </div>
+                    
+                    <h1 className='text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight'>
+                        Everything You Need to <br className="hidden md:block" />
+                        <span className='bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400'>
+                           Create Viral 
+                        </span>
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 ml-2">
+                            Clips
+                        </span>
+                    </h1>
+                    
+                    <p className="text-gray-400 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed">
+                        Unleash your creativity with our professional suite of AI tools. 
+                        Designed for speed, built for engagement.
+                    </p>
+                </div>
+
+                {/* Bento Grid */}
+                <div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
                     {featuresData.map((feature, index) => (
-                        <motion.div
+                        <div
                             key={index}
-                            // 5. Apply the dynamic layout class
-                            className={`rounded-2xl p-6 flex flex-col items-center text-center 
-                                       border border-white/10 bg-white/5 backdrop-blur-md
-                                       transition-all duration-300 ease-out ${feature.layout}`}
-                            variants={cardVariants}
-                            style={{ '--glow-color': feature.color }}
-                            whileHover={{
-                                y: -6,
-                                scale: 1.03,
-                                boxShadow: `0px 10px 30px -5px ${feature.color}33`,
-                                transition: { type: 'spring', stiffness: 300, damping: 20 }
-                            }}
+                            className={`
+                                group relative feature-card rounded-3xl p-8 flex flex-col items-start text-left
+                                border border-white/10 bg-[#0a0a0a]/60 backdrop-blur-xl
+                                hover:bg-[#0a0a0a]/80 transition-all duration-300 overflow-hidden
+                                ${feature.layout}
+                            `}
                         >
-                            {/* 6. Wrap icon in motion.div to animate it */}
-                            <motion.div
-                                className={`mb-4 p-3 rounded-xl ${feature.iconBg} border border-white/10`}
-                                // Add rotate animation on the card's hover
-                                whileHover={{ rotate: 360 }}
-                                transition={{ type: 'spring', stiffness: 300 }}
+                            {/* Icon Container (Gold Theme) */}
+                            <div 
+                                className={`
+                                    mb-6 p-4 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-orange-500/5 
+                                    border border-yellow-500/20 group-hover:border-yellow-500/40
+                                    transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_0_30px_-10px_rgba(234,179,8,0.3)]
+                                `}
                             >
-                                <feature.icon className={`w-10 h-10 ${feature.iconColor}`} />
-                            </motion.div>
+                                <feature.icon className="w-8 h-8 text-yellow-400" />
+                            </div>
 
-                            <h2 className='text-xl font-semibold mb-2'>{feature.title}</h2>
-                            <p className='text-gray-300 text-sm'>{feature.description}</p>
-                        </motion.div>
+                            <h2 className='text-2xl font-bold mb-3 text-white group-hover:text-yellow-400 transition-colors'>
+                                {feature.title}
+                            </h2>
+                            <p className='text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors'>
+                                {feature.description}
+                            </p>
+
+                            {/* Decorative Corner Gradient */}
+                            <div 
+                                className="absolute top-0 right-0 w-32 h-32 rounded-bl-full opacity-0 transition-opacity duration-500 group-hover:opacity-20 pointer-events-none"
+                                style={{ background: `radial-gradient(circle at top right, #EAB308, transparent)` }}
+                            />
+                        </div>
                     ))}
-                </motion.div>
+                </div>
             </div>
         </div>
     )
 }
+
 
 export default Features

@@ -1,7 +1,6 @@
-// Footer.jsx
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Twitter, Youtube, Linkedin, Send } from 'lucide-react'
+import { Twitter, Youtube, Linkedin, Send, Sparkles } from 'lucide-react'
 
 // Simple variants for the fade-in
 const footerVariants = {
@@ -16,91 +15,132 @@ const footerVariants = {
 const Footer = () => {
   return (
     <motion.footer 
-        className='relative py-20 px-6 text-gray-400 overflow-hidden'
+        className='relative py-20 px-6 bg-black text-gray-400 overflow-hidden border-t border-white/10 selection:bg-yellow-500 selection:text-black'
         variants={footerVariants}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.1 }}
     >
         {/* --- Top Border Glow --- */}
-        {/* This uses the same gradient as your animated text for a cohesive theme */}
         <div 
-            className='absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[2px]
-                       blur-lg'
+            className='absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[1px] blur-sm opacity-70'
             style={{
-                background: `linear-gradient(90deg, #EC4899, #A855F7, #EC4899)`
+                background: `linear-gradient(90deg, transparent, #EAB308, #F97316, #EAB308, transparent)`
             }}
         />
         
+        {/* --- Ambient Glow --- */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-yellow-500/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2" />
+
         {/* --- Main Grid --- */}
-        <div className='max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-12'>
+        <div className='relative z-10 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-12'>
             
             {/* Column 1: Brand & Socials */}
-            <div className='md:col-span-2'>
-                <h3 className='text-2xl font-bold text-white mb-3'>AI Clips</h3>
-                <p className='text-sm max-w-xs mb-6'>
-                    Create viral AI clips in seconds, not hours.
+            <div className='md:col-span-2 space-y-6'>
+                <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                        <span className="text-black font-bold text-lg">M</span>
+                    </div>
+                    <h3 className='text-2xl font-bold text-white tracking-tight'>
+                        MritX <span className="text-yellow-500">SG</span>
+                    </h3>
+                </div>
+                
+                <p className='text-sm leading-relaxed max-w-xs'>
+                    The ultimate AI-powered video creation platform. 
+                    Turn simple prompts into viral clips in seconds.
                 </p>
+                
                 <div className='flex gap-4'>
-                    <a href="#" className='hover:text-white transition-colors'><Twitter className='w-5 h-5' /></a>
-                    <a href="#" className='hover:text-white transition-colors'><Youtube className='w-5 h-5' /></a>
-                    <a href="#" className='hover:text-white transition-colors'><Linkedin className='w-5 h-5' /></a>
+                    <SocialIcon icon={Twitter} />
+                    <SocialIcon icon={Youtube} />
+                    <SocialIcon icon={Linkedin} />
                 </div>
             </div>
 
             {/* Column 2: Product */}
             <div>
-                <h4 className='font-semibold text-white mb-4'>Product</h4>
-                <ul className='space-y-3'>
-                    <li><a href="#" className='hover:text-white transition-colors'>Features</a></li>
-                    <li><a href="#" className='hover:text-white transition-colors'>How It Works</a></li>
-                    <li><a href="#" className='hover:text-white transition-colors'>Pricing</a></li>
-                    <li><a href="#" className='hover:text-white transition-colors'>Testimonials</a></li>
+                <h4 className='font-semibold text-white mb-6'>Product</h4>
+                <ul className='space-y-4 text-sm'>
+                    <li><FooterLink href="#">Features</FooterLink></li>
+                    <li><FooterLink href="#">How It Works</FooterLink></li>
+                    <li><FooterLink href="#">Pricing</FooterLink></li>
+                    <li><FooterLink href="#">Showcase</FooterLink></li>
                 </ul>
             </div>
 
             {/* Column 3: Company */}
             <div>
-                <h4 className='font-semibold text-white mb-4'>Company</h4>
-                <ul className='space-y-3'>
-                    <li><a href="#" className='hover:text-white transition-colors'>About Us</a></li>
-                    <li><a href="#" className='hover:text-white transition-colors'>Blog</a></li>
-                    <li><a href="#" className='hover:text-white transition-colors'>Contact</a></li>
+                <h4 className='font-semibold text-white mb-6'>Company</h4>
+                <ul className='space-y-4 text-sm'>
+                    <li><FooterLink href="#">About Us</FooterLink></li>
+                    <li><FooterLink href="#">Blog</FooterLink></li>
+                    <li><FooterLink href="#">Careers</FooterLink></li>
+                    <li><FooterLink href="#">Contact</FooterLink></li>
                 </ul>
             </div>
 
-            {/* Column 4: Newsletter (Optional but good) */}
-            <div>
-                <h4 className='font-semibold text-white mb-4'>Join our newsletter</h4>
-                <p className='text-sm mb-4'>Get updates on new features.</p>
-                <form className='flex'>
-                    <input 
-                        type="email" 
-                        placeholder="your@email.com" 
-                        className='w-full px-3 py-2 text-sm bg-white/5 border border-white/10 
-                                   rounded-l-lg focus:outline-none focus:border-pink-400'
-                    />
-                    <button 
-                        className='p-2 bg-pink-500 rounded-r-lg hover:bg-pink-600 transition-colors'
-                        aria-label="Submit email"
-                    >
-                        <Send className='w-5 h-5' />
-                    </button>
+            {/* Column 4: Newsletter */}
+            <div className='md:col-span-1'>
+                <h4 className='font-semibold text-white mb-4 flex items-center gap-2'>
+                    <Sparkles className="w-4 h-4 text-yellow-500" />
+                    Stay Updated
+                </h4>
+                <p className='text-xs mb-4 text-gray-500'>
+                    Get the latest AI video trends and feature updates.
+                </p>
+                <form className='flex flex-col gap-2'>
+                    <div className="relative">
+                        <input 
+                            type="email" 
+                            placeholder="your@email.com" 
+                            className='w-full pl-4 pr-12 py-3 text-sm bg-white/5 border border-white/10 
+                                       rounded-xl focus:outline-none focus:border-yellow-500/50 focus:bg-white/10
+                                       transition-all placeholder:text-gray-600 text-white'
+                        />
+                        <button 
+                            type="submit"
+                            className='absolute right-1 top-1 bottom-1 p-2 bg-gradient-to-r from-yellow-400 to-orange-500 
+                                       rounded-lg text-black hover:opacity-90 transition-opacity shadow-lg shadow-orange-500/20'
+                            aria-label="Submit email"
+                        >
+                            <Send className='w-4 h-4' />
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
 
         {/* --- Bottom Bar --- */}
-        <div className='max-w-6xl mx-auto mt-16 pt-8 border-t border-white/10 
-                      flex flex-col md:flex-row justify-between items-center text-sm'>
-            <p>&copy; {new Date().getFullYear()} AI Clips. All rights reserved.</p>
+        <div className='relative z-10 max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 
+                        flex flex-col md:flex-row justify-between items-center text-xs text-gray-500'>
+            <p>&copy; {new Date().getFullYear()} MritX SG. All rights reserved.</p>
             <div className='flex gap-6 mt-4 md:mt-0'>
-                <a href="#" className='hover:text-white transition-colors'>Privacy Policy</a>
-                <a href="#" className='hover:text-white transition-colors'>Terms of Service</a>
+                <a href="#" className='hover:text-yellow-500 transition-colors'>Privacy Policy</a>
+                <a href="#" className='hover:text-yellow-500 transition-colors'>Terms of Service</a>
+                <a href="#" className='hover:text-yellow-500 transition-colors'>Cookie Policy</a>
             </div>
         </div>
     </motion.footer>
   )
 }
+
+// Helper Components
+const FooterLink = ({ href, children }) => (
+    <a href={href} className='hover:text-yellow-400 transition-colors duration-200 flex items-center gap-2 group'>
+        <span className="w-0 h-[1px] bg-yellow-500 transition-all duration-300 group-hover:w-3" />
+        {children}
+    </a>
+)
+
+const SocialIcon = ({ icon: Icon }) => (
+    <a 
+        href="#" 
+        className='p-2 rounded-full bg-white/5 border border-white/5 hover:border-yellow-500/30 hover:bg-yellow-500/10 
+                   hover:text-yellow-400 transition-all duration-300 group'
+    >
+        <Icon className='w-5 h-5 transition-transform group-hover:scale-110' />
+    </a>
+)
 
 export default Footer

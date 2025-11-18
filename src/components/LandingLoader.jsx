@@ -1,133 +1,92 @@
 'use client';
-import React, { useEffect, useState } from 'react'; // <-- Make sure useState is imported
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const greetings = [
-  'Hello', 'नमस्ते', 'নমস্কার', 'வணக்கம்', 'హలో', 'नमस्कार',
-  'નમસ્તે', 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ', 'നമസ്കാരം', 'ನಮસ્ಕಾರ', 'سلام', 'ନମସ୍କାର'
+  'Hello', 'नमस्ते', 'Bonjour', 'Hola', 'Ciao', 'Hallo', 'Olá',
+  '你好', '안녕하세요', 'Привет', 'مرحبا', 'வணக்கம்', 'నమస్కారం'
 ];
 
-// Total time for the loader (in milliseconds)
-const LOADER_DURATION = 3600; 
-// Time for each word (in milliseconds)
-const WORD_CHANGE_INTERVAL = 300;
+// Faster, snappier duration
+const TOTAL_DURATION = 2000; 
+const WORD_DURATION = TOTAL_DURATION / (greetings.length + 1);
 
-// --- Animation Variants ---
-
-// 1. For the H1 (the word container)
-const wordVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.04, // Stagger in each letter
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: -10,
-    transition: {
-      duration: 0.2,
-    },
-  },
-};
-
-// 2. For each SPAN (the letter)
-const letterVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: 'spring',
-      stiffness: 150,
-      damping: 20,
-    },
-  },
-};
-
-// --- Sub-Component for Animating Letters ---
-const AnimatedLetters = ({ text, isBrand = false }) => {
-  const letters = text.split('');
-
-  return (
-    <motion.h1
-      key={text}
-      className={`text-5xl font-semibold tracking-wide ${isBrand ? 'animated-gradient-text' : ''}`}
-      variants={wordVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-    >
-      {letters.map((letter, i) => (
-        <motion.span
-          key={`${text}-${i}`}
-          variants={letterVariants}
-        >
-          {/* Handle spaces explicitly for layout */}
-          {letter === ' ' ? '\u00A0' : letter} 
-        </motion.span>
-      ))}
-    </motion.h1>
-  );
-};
-
-
-// --- Main Loader Component ---
 const LandingLoader = ({ onLoadingComplete }) => {
-  // --- FIX IS HERE ---
+  const [mounted, setMounted] = useState(false);
   const [index, setIndex] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
-  // --- END FIX ---
 
   useEffect(() => {
-    // 1. Start cycling through the greetings
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % greetings.length);
-    }, WORD_CHANGE_INTERVAL);
-
-    // 2. Set a timer for the *entire* sequence
-    const completeTimer = setTimeout(() => {
-      clearInterval(interval); // Stop the cycling
-      setIsCompleting(true); // Trigger the "finale" animation
-    }, LOADER_DURATION);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(completeTimer);
-    };
+    setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const interval = setInterval(() => {
+      setIndex((prev) => {
+        if (prev + 1 >= greetings.length) {
+          clearInterval(interval);
+          setTimeout(() => setIsCompleting(true), 1000); // Pause on final word
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, WORD_DURATION);
+
+    return () => clearInterval(interval);
+  }, [mounted]);
+
+  if (!mounted) return null;
 
   return (
     <motion.div
-      className="h-screen w-screen flex items-center justify-center 
-                 bg-black text-white"
-      // This animates the *entire screen* fading out
-      animate={isCompleting ? { opacity: 0 } : { opacity: 1 }}
-      transition={{ duration: 0.5, delay: 1.5 }} // Delay 1.5s after "AI Clips" appears
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black text-white"
+      initial={{ opacity: 1 }}
+      animate={isCompleting ? { opacity: 0, pointerEvents: 'none' } : { opacity: 1 }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
       onAnimationComplete={() => {
-        if (isCompleting) {
-          onLoadingComplete(); // Tell the parent component we're done
-        }
+        if (isCompleting && onLoadingComplete) onLoadingComplete();
       }}
     >
-      <div className="relative z-10">
-        <AnimatePresence mode="wait">
-          {!isCompleting ? (
-            // --- The Greeting Cycler ---
-            <AnimatedLetters
-              text={greetings[index]}
-              key={index}
-            />
-          ) : (
-            // --- The "Finale" ---
-            <AnimatedLetters
-              text="AI Clips"
-              key="brand-finale"
-              isBrand={true} // This applies the animated gradient!
-            />
-          )}
-        </AnimatePresence>
+      {/* Subtle background pattern to add texture without noise */}
+      <div className="absolute inset-0 opacity-[0.05]" 
+           style={{ backgroundImage: 'radial-gradient(#333 1px, transparent 1px)', backgroundSize: '20px 20px' }} 
+      />
+
+      <div className="relative z-10 flex flex-col items-center">
+        <div className="overflow-hidden h-20 md:h-28 flex items-center justify-center min-w-[300px]">
+          <AnimatePresence mode="wait">
+            {!isCompleting ? (
+              <motion.h1
+                key={index}
+                className="text-4xl md:text-6xl font-medium tracking-tight text-white"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+              >
+                <span className="flex items-center gap-3">
+                    {/* Small dot accent */}
+                    <span className="w-2 h-2 rounded-full bg-white/20 inline-block" />
+                    {greetings[index]}
+                </span>
+              </motion.h1>
+            ) : (
+              <motion.div
+                key="brand"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, type: "spring", bounce: 0.3 }}
+                className="text-center"
+              >
+                <h1 className="text-5xl md:text-7xl font-bold tracking-tighter">
+                  Mrit <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500">X</span>
+                </h1>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </motion.div>
   );

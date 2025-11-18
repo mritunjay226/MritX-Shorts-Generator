@@ -119,7 +119,7 @@ const Testimonials = () => {
                 viewport={{ once: true, amount: 0.5 }}
                 transition={{ duration: 0.5 }}
             >
-                Don't Just Take <span className='animated-gradient-text'>Our Word...</span>
+                Don't Just Take <span className='bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500'>Our Word...</span>
             </motion.h2>
             <motion.p 
                 className='text-lg text-gray-300 text-center mb-16 max-w-2xl mx-auto'

@@ -1,512 +1,264 @@
 "use client";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { Film, Image as ImageIcon, Sparkles, Play, ArrowRight, Video, Layers, Wand2, Music, Scissors, Zap } from "lucide-react";
+
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence, useMotionValue } from "framer-motion";
-import { Film, Image, Sparkles, Play, Zap } from "lucide-react";
-import { useState, useEffect, useRef, useMemo } from "react";
 
 export default function CreateNewVideo() {
   const router = useRouter();
-  const [particles, setParticles] = useState([]);
-  const containerRef = useRef(null);
-  const [isVisible, setIsVisible] = useState(true);
-
-  useEffect(() => {
-    // Generate background particles (once)
-    const newParticles = Array.from({ length: 24 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 2,
-      duration: Math.random() * 14 + 10,
-      delay: Math.random() * 6,
-    }));
-    setParticles(newParticles);
-  }, []);
-
-  // Pause animations when offscreen to save CPU/GPU
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => setIsVisible(entry.isIntersecting));
-      },
-      { threshold: 0.1 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+  
+  // Generate random starting positions for the icons on mount
+  // We use a fixed count of "flies"
+  const flyCount = 15;
+  const icons = [Film, Video, ImageIcon, Music, Sparkles, Layers, Wand2, Scissors, Play, Zap];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br  relative overflow-hidden flex flex-col items-center justify-center text-white">
+    <div className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-center p-6 selection:bg-yellow-500/30">
       
-      {/* Animated Gradient Orbs */}
-      <motion.div
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute top-20 left-20 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl"
-      />
-      <motion.div
-        animate={{
-          scale: [1.2, 1, 1.2],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute bottom-20 right-20 w-96 h-96 bg-yellow-600/20 rounded-full blur-3xl"
-      />
+      {/* 🔹 FLYING ICONS BACKGROUND (The "Flies") */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(flyCount)].map((_, i) => (
+            <FlyingIcon key={i} Icon={icons[i % icons.length]} index={i} />
+        ))}
+      </div>
 
-      {/* Floating Particles (CSS-driven for performance) */}
-      {particles.map((particle) => (
-        <div
-          key={particle.id}
-          className="particle"
-          style={{
-            left: `${particle.x}%`,
-            width: particle.size,
-            height: particle.size,
-            animationDuration: `${particle.duration}s`,
-            animationDelay: `${particle.delay}s`,
-            animationPlayState: isVisible ? "running" : "paused",
-          }}
-        />
-      ))}
-
-      {/* Floating insect-like icons (CSS-driven & memoized) */}
-      <FloatingInsects count={12} isVisible={isVisible} />
-
-      {/* Title with Sparkle Effects */}
-      <div className="relative z-10 mb-16">
+      {/* Main Content */}
+      <div className="relative z-10 w-full max-w-6xl">
+        
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -25 }}
+          initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 70 }}
-          className="relative"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center mb-16"
         >
           <motion.div
-            animate={{
-              rotate: [0, 360],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="absolute -top-8 -right-8"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="inline-block mb-4"
           >
-            <Sparkles className="w-6 h-6 text-yellow-400" />
+            <div className="relative p-3 rounded-full border border-yellow-500/20 bg-yellow-500/5 backdrop-blur-sm shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]">
+              <Sparkles className="w-6 h-6 text-yellow-400 fill-yellow-400/20" />
+            </div>
           </motion.div>
-          <motion.div
-            animate={{
-              rotate: [360, 0],
-            }}
-            transition={{
-              duration: 15,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            className="absolute -bottom-6 -left-8"
-          >
-            <Sparkles className="w-5 h-5 text-pink-400" />
-          </motion.div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-400 via-yellow-400 to-pink-400 bg-clip-text text-transparent">
-            Choose Your Video Type
+
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white">
+            Create Your <br className="hidden md:block" />
+            <span className="bg-gradient-to-r from-yellow-200 via-yellow-400 to-orange-500 bg-clip-text text-transparent">
+              Next Viral Video
+            </span>
           </h1>
+          
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
+          >
+            Choose your preferred workflow to bring your story to life.
+          </motion.p>
         </motion.div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto px-4">
+          <VideoCard
+            title="Image to Video"
+            description="Transform static images into cinematic videos with AI-powered narration and smooth transitions."
+            icon={ImageIcon}
+            accentColor="gold"
+            route="/create-new-video/ImageBased"
+            router={router}
+            delay={0.1}
+            features={["AI Narration", "Auto Transitions", "Music Sync"]}
+          />
+
+          <VideoCard
+            title="Clip Compilation"
+            description="Combine raw video clips into professional highlight reels with seamless editing and smart effects."
+            icon={Film}
+            accentColor="orange"
+            route="/create-new-video/ClipBased"
+            router={router}
+            delay={0.2}
+            features={["Smart Cuts", "Auto Editing", "Dynamic Effects"]}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl relative z-10">
-        <Card
-          title="Image-based Video"
-          description="Generate videos using static images & narration."
-          icon={Image}
-          glowColor="pink"
-          route="/create-new-video/ImageBased"
-          router={router}
-        />
-
-        <Card
-          title="Clip-based Video"
-          description="Create highlights using video clips."
-          icon={Film}
-          glowColor="yellow"
-          route="/create-new-video/ClipBased"
-          router={router}
-        />
-      </div>
+      {/* Bottom Fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-20" />
     </div>
   );
 }
 
-function Card({ title, description, icon: Icon, glowColor, route, router }) {
+// --- Sub-Components ---
+
+function FlyingIcon({ Icon, index }) {
+    // Generate random movement paths
+    return (
+        <motion.div
+            initial={{ 
+                x: Math.random() * 1000, // Random start
+                y: Math.random() * 1000,
+                opacity: 0,
+                scale: 0
+            }}
+            animate={{ 
+                x: [null, Math.random() * 1000, Math.random() * -100, Math.random() * 1000], // Wandering path
+                y: [null, Math.random() * 800, Math.random() * 1000, Math.random() * -100],
+                rotate: [0, 45, -45, 180, 0],
+                opacity: [0, 0.1, 0.2, 0.1, 0], // Fade in/out naturally
+                scale: [0.5, 1, 0.8, 1.2, 0.5]
+            }}
+            transition={{ 
+                duration: Math.random() * 20 + 20, // Very slow, varying duration (20-40s)
+                repeat: Infinity,
+                ease: "linear",
+                delay: index * 0.5 // Stagger start times
+            }}
+            className="absolute z-0"
+        >
+            <Icon className="w-8 h-8 md:w-12 md:h-12 text-yellow-500/10" />
+        </motion.div>
+    )
+}
+
+function VideoCard({ title, description, icon: Icon, accentColor, route, router, delay, features }) {
   const [isHovered, setIsHovered] = useState(false);
-  const [burstParticles, setBurstParticles] = useState([]);
   const cardRef = useRef(null);
+  
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [7, -7]), { stiffness: 200, damping: 20 });
+  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-7, 7]), { stiffness: 200, damping: 20 });
 
-  // Motion values for smooth, low-overhead 3D tilt
-  const rx = useMotionValue(0);
-  const ry = useMotionValue(0);
-  const rafRef = useRef(null);
-
-  const handleHover = () => {
-    setIsHovered(true);
-    // Generate burst particles on hover
-    const newBurst = Array.from({ length: 12 }, (_, i) => ({
-      id: Date.now() + i,
-      angle: (i / 12) * 360,
-    }));
-    setBurstParticles(newBurst);
-  };
-
-  const colorMap = {
-    pink: {
-      from: "from-pink-500",
-      to: "to-cyan-500",
-      border: "border-pink-500/40",
-      bg: "bg-pink-600/20",
-      text: "text-pink-400",
-      shadow: "shadow-pink-500/50",
-      glow: "bg-pink-500/25",
-    },
-    yellow: {
-      from: "from-yellow-500",
-      to: "to-pink-500",
-      border: "border-yellow-500/40",
-      bg: "bg-yellow-600/20",
+  const colors = {
+    gold: {
+      gradient: "from-yellow-500 to-amber-600",
+      glow: "bg-yellow-500/20",
+      border: "border-yellow-500/30",
       text: "text-yellow-400",
-      shadow: "shadow-yellow-500/50",
-      glow: "bg-yellow-500/25",
+      bg: "group-hover:shadow-yellow-500/20",
+      iconBg: "text-yellow-500"
+    },
+    orange: {
+      gradient: "from-orange-500 to-red-600",
+      glow: "bg-orange-500/20",
+      border: "border-orange-500/30",
+      text: "text-orange-400",
+      bg: "group-hover:shadow-orange-500/20",
+      iconBg: "text-orange-500"
     },
   };
 
-  const colors = colorMap[glowColor];
+  const color = colors[accentColor];
 
-  const handleMove = (e) => {
+  const handleMouseMove = (e) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const newRx = ((y - cy) / cy) * 6; // rotateX (degrees)
-    const newRy = -((x - cx) / cx) * 10; // rotateY (degrees)
-
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
-      rx.set(newRx);
-      ry.set(newRy);
-    });
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
   };
 
-  const handleLeave = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rx.set(0);
-    ry.set(0);
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
     setIsHovered(false);
   };
 
   return (
     <motion.div
       ref={cardRef}
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay, ease: "easeOut" }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
       onClick={() => router.push(route)}
-      onHoverStart={() => { handleHover(); setIsHovered(true); }}
-      onHoverEnd={handleLeave}
-      onMouseMove={handleMove}
       style={{
-        rotateX: rx,
-        rotateY: ry,
-        scale: isHovered ? 1.04 : 1,
+        rotateX,
+        rotateY,
         transformStyle: "preserve-3d",
-        willChange: "transform, opacity",
-        boxShadow: isHovered ? `0 8px 40px ${glowColor === "pink" ? "#3b82f6" : "#a855f7"}` : "",
       }}
       whileTap={{ scale: 0.98 }}
-      className="cursor-pointer relative rounded-2xl overflow-hidden bg-[#111]/70 backdrop-blur-xl border border-white/10 shadow-2xl p-6 transition-all group"
+      className={`relative cursor-pointer group h-full`}
     >
-      {/* Animated Border Gradient */}
-      <motion.div
-        animate={{
-          rotate: [0, 360],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-        className="absolute inset-0 opacity-10 transition-opacity pointer-events-none"
-        style={{
-          background: `conic-gradient(from 0deg, transparent 0%, ${glowColor === "pink" ? "#3b82f6" : "#a855f7"} 50%, transparent 100%)`,
-          filter: "blur(24px)",
-        }}
-      />
-
-      {/* Inner Content */}
-      <div className="relative z-10">
+      {/* Perspective Container */}
+      <div className="relative h-full bg-[#0a0a0a] backdrop-blur-xl rounded-[2rem] border border-white/10 overflow-hidden transition-all duration-500 group-hover:border-white/20 shadow-2xl">
         
-        {/* Burst Particles on Hover */}
-        <AnimatePresence>
-          {burstParticles.map((particle) => (
-            <motion.div
-              key={particle.id}
-              initial={{ 
-                x: 0, 
-                y: 0, 
-                opacity: 1,
-                scale: 0,
-              }}
-              animate={{
-                x: Math.cos((particle.angle * Math.PI) / 180) * 100,
-                y: Math.sin((particle.angle * Math.PI) / 180) * 100,
-                opacity: 0,
-                scale: 1,
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8 }}
-              className={`absolute top-1/2 left-1/2 w-2 h-2 ${colors.bg} rounded-full`}
-            />
-          ))}
-        </AnimatePresence>
-
-        {/* Icon Animation Area */}
-        <div className="h-48 flex items-center justify-center relative overflow-visible mb-4">
-          <motion.div
-            className="relative w-48 h-32"
-          >
-            {/* LEFT ICON */}
-            <motion.div
-              initial={{ x: -80, opacity: 0, rotate: -20 }}
-              animate={{
-                x: [-80, -20, -20, 0, -80],
-                opacity: [0, 1, 1, 1, 0],
-                rotate: [-20, 0, 0, 0, -20],
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 4,
-                times: [0, 0.2, 0.4, 0.6, 1],
-                ease: "easeInOut",
-              }}
-              className={`absolute top-1/2 -translate-y-1/2 p-4 ${colors.bg} border ${colors.border} rounded-xl backdrop-blur-sm`}
-            >
-              <Icon className={`w-10 h-10 ${colors.text}`} />
-              <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2,
-                }}
-                className={`absolute inset-0 ${colors.bg} rounded-xl blur-md -z-10`}
-              />
-            </motion.div>
-
-            {/* RIGHT ICON */}
-            <motion.div
-              initial={{ x: 80, opacity: 0, rotate: 20 }}
-              animate={{
-                x: [80, 20, 20, 0, 80],
-                opacity: [0, 1, 1, 1, 0],
-                rotate: [20, 0, 0, 0, 20],
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 4,
-                times: [0, 0.2, 0.4, 0.6, 1],
-                ease: "easeInOut",
-              }}
-              className={`absolute top-1/2 -translate-y-1/2 right-0 p-4 ${colors.bg} border ${colors.border} rounded-xl backdrop-blur-sm`}
-            >
-              <Icon className={`w-10 h-10 ${colors.text}`} />
-              <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2,
-                  delay: 0.3,
-                }}
-                className={`absolute inset-0 ${colors.bg} rounded-xl blur-md -z-10`}
-              />
-            </motion.div>
-
-            {/* MERGE ENERGY WAVES */}
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                animate={{
-                  scale: [0, 2, 0],
-                  opacity: [0, 0.6, 0],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 4,
-                  times: [0.4, 0.55, 0.7],
-                  delay: i * 0.1,
-                }}
-                className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 ${colors.glow} blur-2xl rounded-full`}
-              />
-            ))}
-
-            {/* SPARKLE EFFECTS DURING MERGE */}
-            {[0, 1, 2, 3, 4].map((i) => (
-              <motion.div
-                key={`spark-${i}`}
-                animate={{
-                  scale: [0, 1, 0],
-                  opacity: [0, 1, 0],
-                  x: [0, (i - 2) * 15],
-                  y: [0, -20 + (i % 2) * 40],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 4,
-                  times: [0.5, 0.6, 0.7],
-                  delay: i * 0.05,
-                }}
-                className={`absolute left-1/2 top-1/2 w-1 h-1 ${colors.bg} rounded-full`}
-              />
-            ))}
-
-            {/* FINAL VIDEO FRAME WITH PLAY ICON */}
-            <motion.div
-              animate={{
-                scale: [0, 1.1, 1, 0],
-                opacity: [0, 1, 1, 0],
-                rotate: [0, 360, 360, 0],
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 4,
-                times: [0.6, 0.7, 0.85, 1],
-              }}
-              className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-16 rounded-lg border-2 ${colors.border} ${colors.bg} flex items-center justify-center backdrop-blur-sm`}
-            >
-              <motion.div
-                animate={{
-                  scale: [0.8, 1.2, 0.8],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 1,
-                }}
-              >
-                <Play className={`w-6 h-6 ${colors.text} fill-current`} />
-              </motion.div>
-            </motion.div>
-
-            {/* SUCCESS FLASH */}
-            <motion.div
-              animate={{
-                scale: [0, 2.5],
-                opacity: [0.8, 0],
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 4,
-                times: [0.7, 0.85],
-              }}
-              className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 ${colors.glow} rounded-full`}
-            />
-          </motion.div>
-        </div>
-
-        {/* Lightning Bolts on Hover */}
-        {isHovered && (
-          <>
-            <motion.div
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: [0, 1, 0] }}
-              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 0.8 }}
-              className="absolute top-4 right-4"
-            >
-              <Zap className={`w-5 h-5 ${colors.text}`} />
-            </motion.div>
-            <motion.div
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: [0, 1, 0] }}
-              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 0.8, delay: 0.4 }}
-              className="absolute bottom-4 left-4"
-            >
-              <Zap className={`w-5 h-5 ${colors.text}`} />
-            </motion.div>
-          </>
-        )}
-
-        {/* Text with Gradient */}
-        <h2 className="text-2xl font-semibold text-gray-100">{title}</h2>
-        <p className="text-gray-400 mt-2">{description}</p>
-
-        {/* Hover Indicator */}
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: isHovered ? "100%" : 0 }}
-          transition={{ duration: 0.3 }}
-          className={`h-0.5 bg-gray-700 mt-4 rounded-full`}
-        />
-      </div>
-
-      {/* Corner Accents */}
-      <div className={`absolute top-0 left-0 w-20 h-20 ${colors.bg} blur-2xl opacity-10 transition-opacity pointer-events-none`} />
-      <div className={`absolute bottom-0 right-0 w-20 h-20 ${colors.bg} blur-2xl opacity-10 transition-opacity pointer-events-none`} />
-    </motion.div>
-  );
-}
-
-function FloatingInsects({ count = 12, isVisible = true }) {
-  const icons = [Sparkles, Play, Zap, Image, Film];
-  const insects = useMemo(
-    () =>
-      Array.from({ length: count }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        size: Math.random() * 18 + 10,
-        delay: Math.random() * 6,
-        duration: Math.random() * 12 + 8,
-        icon: icons[i % icons.length],
-        sway: Math.random() * 30 + 10,
-      })),
-    [count]
-  );
-
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {insects.map((ins) => {
-        const Icon = ins.icon;
-        return (
-          <div
-            key={ins.id}
-            className="insect"
+        {/* Spotlight Gradient Follower */}
+        <motion.div 
+            className="absolute -inset-px rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
             style={{
-              left: `${ins.left}%`,
-              top: `${ins.top}%`,
-              width: ins.size,
-              height: ins.size,
-              animationDuration: `${ins.duration}s`,
-              animationDelay: `${ins.delay}s`,
-              animationPlayState: isVisible ? "running" : "paused",
+                background: `radial-gradient(600px circle at ${useTransform(mouseX, v => (v + 0.5) * 100).get()}% ${useTransform(mouseY, v => (v + 0.5) * 100).get()}%, rgba(255,255,255,0.04), transparent 40%)`
             }}
-          >
-            <div className="insect-inner">
-              <Icon className="w-full h-full p-1" />
+        />
+
+        <div className="relative p-8 flex flex-col h-full z-10">
+          
+          {/* Icon Area */}
+          <div className="mb-8 flex items-center justify-between">
+             {/* Animated Icon Container */}
+            <div className={`relative w-16 h-16 flex items-center justify-center rounded-2xl ${color.glow} border ${color.border} backdrop-blur-sm overflow-hidden`}>
+                <motion.div
+                    animate={{
+                        rotate: isHovered ? 15 : 0,
+                        scale: isHovered ? 1.1 : 1
+                    }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                >
+                    <Icon className={`w-8 h-8 ${color.text}`} strokeWidth={1.5} />
+                </motion.div>
+                
+                {/* Shine Effect */}
+                <motion.div
+                    animate={{
+                        x: isHovered ? ["100%", "-100%"] : "100%"
+                    }}
+                    transition={{ duration: 1.5, ease: "linear", repeat: Infinity }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                />
             </div>
+            
+            <motion.div 
+                animate={{ x: isHovered ? 5 : 0 }}
+                className={`p-2 rounded-full border border-white/5 bg-white/5 text-white/50 group-hover:text-white transition-colors`}
+            >
+                <ArrowRight className="w-5 h-5" />
+            </motion.div>
           </div>
-        );
-      })}
-    </div>
+
+          {/* Text Content */}
+          <div className="flex-grow">
+            <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-yellow-200 transition-all">
+              {title}
+            </h3>
+            <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6 group-hover:text-gray-300 transition-colors">
+              {description}
+            </p>
+          </div>
+
+          {/* Features Tags */}
+          <div className="flex flex-wrap gap-2 mt-auto">
+            {features.map((feature, i) => (
+              <div 
+                key={i}
+                className={`px-3 py-1 rounded-full text-xs font-medium border border-white/5 bg-white/5 text-gray-400 group-hover:border-white/10 group-hover:text-white transition-colors`}
+              >
+                {feature}
+              </div>
+            ))}
+          </div>
+          
+          {/* Bottom Highlight Line */}
+          <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r ${color.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+        </div>
+      </div>
+    </motion.div>
   );
 }

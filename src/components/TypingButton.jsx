@@ -38,7 +38,6 @@ const TypingButton = () => {
     return () => clearTimeout(timeout);
   }, [subIndex, deleting, index, texts]);
 
-  // blinking cursor effect in JS (so it stays after text)
   useEffect(() => {
     const blinkInterval = setInterval(() => {
       setBlink((prev) => !prev);
@@ -47,10 +46,10 @@ const TypingButton = () => {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 rounded-full p-2 bg-secondary">
-      {/* 🔹 Typing text + cursor together */}
-      <span className="p-2 text-sm md:text-base font-normal whitespace-nowrap overflow-hidden flex items-center">
-        {displayText}
+    <div className="flex flex-col sm:flex-row items-center gap-2 p-2 bg-secondary rounded-full max-w-full">
+      {/* 🔹 Typing text + cursor */}
+      <span className="p-2 text-sm md:text-base font-normal flex-1 min-w-0 flex items-center">
+        <span className="truncate">{displayText}</span>
         <span
           className={`ml-[1px] h-5 w-[2px] bg-white transition-opacity duration-200 ${
             blink ? "opacity-100" : "opacity-0"
@@ -58,11 +57,11 @@ const TypingButton = () => {
         />
       </span>
 
-      {/* 🔹 Button stays static */}
+      {/* 🔹 Button */}
       <Link href="/dashboard">
         <Button
           size="sm"
-          className="rounded-full text-white flex gap-2 items-center bg-gradient-to-r from-yellow-400 to-orange-600"
+          className="rounded-full text-white flex gap-2 items-center bg-gradient-to-r from-yellow-400 to-orange-600 whitespace-nowrap"
         >
           Try now <ArrowRightIcon size={16} />
         </Button>

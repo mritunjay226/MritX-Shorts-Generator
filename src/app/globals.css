@@ -298,3 +298,48 @@
 @media (prefers-reduced-motion: reduce) {
   .particle, .insect { animation: none !important; }
 }
+
+
+/* Gold Spotlight Logic */
+      .feature-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: inherit;
+        padding: 1px; /* Border width */
+        background: radial-gradient(
+          800px circle at var(--mouse-x) var(--mouse-y), 
+          rgba(234, 179, 8, 0.4), /* Yellow-500 */
+          transparent 40%
+        );
+        -webkit-mask: 
+          linear-gradient(#fff 0 0) content-box, 
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      .feature-container:hover .feature-card::before {
+        opacity: 1;
+      }
+      
+      /* Inner Subtle Gold Glow */
+      .feature-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(
+          600px circle at var(--mouse-x) var(--mouse-y), 
+          rgba(234, 179, 8, 0.05), 
+          transparent 40%
+        );
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      .feature-container:hover .feature-card::after {
+        opacity: 1;
+      }

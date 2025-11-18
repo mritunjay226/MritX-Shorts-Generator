@@ -9,6 +9,8 @@ import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import Cta from "@/components/CTA";
 import Footer from "@/components/Footer";
+import ShortsGen from "@/components/ShortsGen";
+import Faq from "@/components/FAQ";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -41,8 +43,10 @@ export default function Home() {
           <Header />
           <Hero />
           <Features />
+          <ShortsGen />
           <HowItWorks />
           <Testimonials />
+          <Faq />
           <Cta />
           <Footer />
           {/* <div className="px-16"><VideoList /></div> */}
