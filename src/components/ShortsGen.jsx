@@ -68,7 +68,7 @@ export default function ShortsGen() {
           setCurrentStep(0);
           setShowVideo(false);
           setIsVideoPlaying(false);
-        }, 2000);
+        }, 6000);
       }
     }, prefersReducedMotion ? 500 : 1000);
 
