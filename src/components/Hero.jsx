@@ -50,7 +50,7 @@ const Hero = () => {
       {/* 🔹 BACKGROUND LAYER (With Infinite Animation) */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-black/70 z-20 pointer-events-none" /> {/* Darken images */}
+        <div className="absolute inset-0 bg-black/40 z-20 pointer-events-none" /> {/* Darken images */}
         <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-20 pointer-events-none" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,black_100%)] z-20 pointer-events-none opacity-80" />
 

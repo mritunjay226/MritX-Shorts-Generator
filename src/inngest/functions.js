@@ -5,11 +5,12 @@ import { generateImagePrompt } from "@/configs/AiModel";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
 import { getServices, renderMediaOnCloudrun } from '@remotion/cloudrun/client';
+import cloudinary from "@/lib/cloudinary";
 
 const ImagePromptScript = `Generate Image prompt of {style} style woth all details for each scene for 30 seconds video : script: {script} 
 - Just Give specifing image prompt depends on the story line
 - do not give camera angle umage prompt
-- Follow the following schema and return JSON data (Max 4-5 Images)
+- Follow the following schema and return JSON data (Max 7-8 Images)
 - [
     {
         imagePrompt:'',
@@ -18,228 +19,292 @@ const ImagePromptScript = `Generate Image prompt of {style} style woth all detai
 ]`
 
 const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
-
-export const helloWorld = inngest.createFunction(
-    { id: "hello-world" },
-    { event: "test/hello.world" },
-    async ({ event, step }) => {
-        await step.sleep("wait-a-moment", "1s");
-        return { message: `Hello ${event.data.email}!` };
-    },
-);
-
 const BASE_URL = 'https://aigurulab.tech';
 
 export const GenerateVideoData = inngest.createFunction(
     { id: "generate-video-data" },
     { event: "generate-video-data" },
     async ({ event, step }) => {
-
-        const { script, topic, title, caption, videoStyle, voice, recordId } = event?.data
+        const { script, topic, title, caption, videoStyle, voice, recordId } = event?.data;
         const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL);
 
+        // -------------------------------
         // Generate Audio File
-            const GenerateAudioFile = await step.run(
-            "GenerateAudioFile",
-            async () => {
-                try {
-                    const response = await axios.post(
-                        "https://api.cartesia.ai/tts/bytes",
-                        {
-                            model_id: "sonic-2",
-                            transcript: script, // <-- your input text
-                            voice: {
-                                mode: "id",
-                                id: voice, // <-- voice ID from input (e.g. "6ccbfb76-1fc6-48f7-b71d-91ac6298247b")
-                            },
-                            output_format: {
-                                container: "mp3",
-                                encoding: "mp3",
-                                sample_rate: 44100,
-                            },
-                            speed: "normal",
+        // -------------------------------
+        const GenerateAudioFile = await step.run("GenerateAudioFile", async () => {
+            try {
+                const response = await axios.post(
+                    "https://api.cartesia.ai/tts/bytes",
+                    {
+                        model_id: "sonic-2",
+                        transcript: script,
+                        voice: { mode: "id", id: voice },
+                        output_format: { container: "mp3", encoding: "mp3", sample_rate: 44100 },
+                        speed: "normal",
+                    },
+                    {
+                        headers: {
+                            "X-API-Key": CARTESIA_API_KEY,
+                            "Cartesia-Version": "2024-06-10",
+                            "Content-Type": "application/json",
                         },
-                        {
-                            headers: {
-                                "X-API-Key": CARTESIA_API_KEY,
-                                "Cartesia-Version": "2024-06-10",
-                                "Content-Type": "application/json",
-                            },
-                            responseType: "arraybuffer", // Important: receive audio as bytes
-                        }
-                    );
+                        responseType: "arraybuffer",
+                    }
+                );
 
-                    // Convert the binary audio data to base64
-                    const audioBase64 = Buffer.from(response.data, "binary").toString("base64");
-
-                    // Return it as a base64 data URL (for Remotion, Firebase, etc.)
-                    const audioUrl = `data:audio/mp3;base64,${audioBase64}`;
-                    return audioUrl;
-                } catch (error) {
-                    console.error("Cartesia TTS Error:", error.response?.data || error.message);
-                    return null;
-                }
+                const audioBase64 = Buffer.from(response.data, "binary").toString("base64");
+                return `data:audio/mp3;base64,${audioBase64}`;
+            } catch (error) {
+                console.error("Cartesia TTS Error:", error.response?.data || error.message);
+                return null;
             }
-        );
+        });
 
-
-
-
-
-        // // Generate Caption
-        // const GenerateCaptions = await step.run(
-        //     "generateCaptions",
-        //     async () => {
-        //         const deepgram = createClient(process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY);
-
-        //         // STEP 2: Call the transcribeUrl method with the audio payload option
-        //         const { result, error } = await deepgram.listen.prerecorded.transcribeUrl(
-        //             {
-        //                 url: GenerateAudioFile,
-        //             },
-        //             // STEP 3: Configure Deepgram options for audio analysis
-        //             {
-        //                 model: "nova-3",
-        //             }
-        //         );
-
-        //         return result.results?.channels[0]?.alternatives[0]?.words;
-        //     }
-
-        // )
-
-
-
+        // -------------------------------
+        // Generate Captions
+        // -------------------------------
         const GenerateCaptions = await step.run("generateCaptions", async () => {
             const deepgram = createClient(process.env.NEXT_PUBLIC_DEEPGRAM_API_KEY);
-
-            // Remove data URL prefix to get raw base64
             const base64Data = GenerateAudioFile.replace(/^data:audio\/\w+;base64,/, "");
             const audioBuffer = Buffer.from(base64Data, "base64");
 
-            // Transcribe raw audio buffer instead of URL
             const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
                 audioBuffer,
-                {
-                    model: "nova-3",
-                    smart_format: true,
-                    detect_language: true,
-                }
+                { model: "nova-3", smart_format: true, detect_language: true }
             );
 
             if (error) {
                 console.error("Deepgram transcription error:", error);
-                return null;
+                return [];
             }
 
             return result.results?.channels?.[0]?.alternatives?.[0]?.words || [];
         });
 
+        // -------------------------------
+        // Generate Image Prompts
+        // -------------------------------
+        const GenerateImagePrompt = await step.run("generateImagePrompt", async () => {
+            const FINAL_PROMPT = ImagePromptScript
+                .replace("{style}", videoStyle)
+                .replace("{script}", script);
 
+            const result = await generateImagePrompt.sendMessage(FINAL_PROMPT);
+            return JSON.parse(result.response.text());
+        });
 
-
-        // Generate Images Prompt using AI
-        const GenerateImagePrompt = await step.run(
-            "generateImagePrompt",
-            async () => {
-                const FINAL_PROMPT = ImagePromptScript
-                    .replace('{style}', videoStyle).replace('{script}', script)
-                const result = await generateImagePrompt.sendMessage(FINAL_PROMPT)
-                const resp = JSON.parse(result.response.text())
-
-                return resp;
-            }
-        )
-
-        // Generate Images using the prompt generated above with AI
-        const GenerateImages = await step.run(
-            "generateImages",
-            async () => {
-                let images = [];
-                images = await Promise.all(
-                    GenerateImagePrompt.map(async (element) => {
-                        const result = await axios.post(BASE_URL + '/api/generate-image',
-                            {
-                                width: 1024,
-                                height: 1024,
-                                input: element?.imagePrompt,
-                                model: 'sdxl',//'flux'
-                                aspectRatio: "1:1"//Applicable to Flux model only
+        // -------------------------------
+        // Generate Images
+        // -------------------------------
+        const GenerateImages = await step.run("generateImages", async () => {
+            return await Promise.all(
+                GenerateImagePrompt.map(async (element) => {
+                    const result = await axios.post(
+                        BASE_URL + "/api/generate-image",
+                        {
+                            width: 1024,
+                            height: 1024,
+                            input: element?.imagePrompt,
+                            model: "sdxl",
+                            aspectRatio: "1:1",
+                        },
+                        {
+                            headers: {
+                                "x-api-key": process.env.NEXT_PUBLIC_AIGURU_API_KEY,
+                                "Content-Type": "application/json",
                             },
-                            {
-                                headers: {
-                                    'x-api-key': process.env.NEXT_PUBLIC_AIGURU_API_KEY, // Your API Key
-                                    'Content-Type': 'application/json', // Content Type
-                                },
-                            })
-                        console.log(result.data.image) //Output Result: Base 64 Image
-                        return result.data.image;
-                    })
+                        }
+                    );
+                    return result.data.image;
+                })
+            );
+        });
 
-                )
-                return images
-            }
-        )
-
+        // -------------------------------
         // Save All Data to DB
-        const UpdateDB = await step.run(
-            "updateDB",
-            async () => {
-                const result = await convex.mutation(api.videoData.UpdateVideoRecord, {
-                    recordId: recordId,
+        // -------------------------------
+        await step.run("updateDB", async () => {
+            return await convex.mutation(api.videoData.UpdateVideoRecord, {
+                recordId: recordId,
+                audioUrl: GenerateAudioFile,
+                captionJson: GenerateCaptions,
+                images: GenerateImages,
+            });
+        });
+
+        // -------------------------------
+        // Trigger Cloud Run FFmpeg Renderer
+        // -------------------------------
+        const RenderVideo = await step.run("renderVideoCloudRun", async () => {
+            try {
+                console.log("=== RenderVideo Step Started ===");
+                console.log("Audio URL exists:", !!GenerateAudioFile);
+                console.log("Number of images:", GenerateImages.length);
+                console.log("Number of captions:", GenerateCaptions.length);
+
+                // -----------------------------
+                // Calculate Image Durations (FIXED)
+                // -----------------------------
+                // Get total audio duration from last caption
+                const totalAudioDuration = GenerateCaptions.length > 0 
+                    ? GenerateCaptions[GenerateCaptions.length - 1].end 
+                    : 10; // fallback to 10 seconds
+                
+                console.log("Total audio duration:", totalAudioDuration, "seconds");
+                
+                // Calculate duration per image (equal distribution)
+                const durationPerImage = totalAudioDuration / GenerateImages.length;
+                
+                // Create image durations array (one per image - MUST match images.length)
+                const imageDurations = GenerateImages.map(() => 
+                    parseFloat(durationPerImage.toFixed(3))
+                );
+                
+                console.log("Image durations (one per image):", imageDurations);
+                console.log("Duration per image:", durationPerImage.toFixed(2) + "s");
+
+                // -----------------------------
+                // Format captions with timing
+                // -----------------------------
+                const formattedCaptions = GenerateCaptions.map(caption => ({
+                    word: caption.word || '',
+                    start: caption.start || 0,
+                    end: caption.end || 0
+                }));
+
+                // -----------------------------
+                // Validate before sending
+                // -----------------------------
+                if (imageDurations.length !== GenerateImages.length) {
+                    throw new Error(
+                        `CRITICAL ERROR: Duration/Image mismatch - ` +
+                        `${imageDurations.length} durations, ${GenerateImages.length} images`
+                    );
+                }
+
+                console.log("✅ Validation passed - arrays match");
+
+                // -----------------------------
+                // Prepare payload for Cloud Run
+                // -----------------------------
+                const payload = {
                     audioUrl: GenerateAudioFile,
-                    captionJson: GenerateCaptions,
-                    images: GenerateImages
+                    images: GenerateImages,
+                    durations: imageDurations,  // ✅ Now matches images.length
+                    captions: formattedCaptions, // With start/end times
+                    watermarkUrl: null // Optional
+                };
+
+                console.log("Payload summary:", {
+                    images: payload.images.length,
+                    durations: payload.durations.length,
+                    captions: payload.captions.length,
+                    totalDuration: payload.durations.reduce((sum, d) => sum + d, 0).toFixed(2) + 's'
                 });
-                return result;
+
+                console.log("Sending payload to Cloud Run...");
+
+                // -----------------------------
+                // Call Cloud Run
+                // -----------------------------
+                const response = await axios.post(
+                    "https://video-renderer-780371904666.asia-south1.run.app/render",
+                    payload,
+                    {
+                        headers: { 
+                            "Content-Type": "application/json" 
+                        },
+                        timeout: 300000, // 5 minutes
+                        maxContentLength: Infinity,
+                        maxBodyLength: Infinity,
+                    }
+                );
+
+                console.log("✅ Cloud Run response received");
+                
+                // Cloud Run returns JSON with videoBase64
+                if (!response.data || !response.data.videoBase64) {
+                    throw new Error("No video data received from Cloud Run");
+                }
+
+                console.log("Video base64 length:", response.data.videoBase64.length);
+
+                // -----------------------------
+                // Convert base64 to buffer
+                // -----------------------------
+                const videoBuffer = Buffer.from(response.data.videoBase64, "base64");
+                console.log("Video buffer length:", videoBuffer.length);
+
+                // -----------------------------
+                // Upload video to Cloudinary
+                // -----------------------------
+                console.log("Uploading video to Cloudinary...");
+                const videoUpload = await new Promise((resolve, reject) => {
+                    const upload = cloudinary.uploader.upload_stream(
+                        {
+                            resource_type: "video",
+                            folder: "generated_videos",
+                            format: "mp4",
+                            public_id: `video_${recordId}_${Date.now()}`
+                        },
+                        (error, result) => {
+                            if (error) {
+                                console.error("Cloudinary upload error:", error);
+                                return reject(error);
+                            }
+                            console.log("✅ Cloudinary upload successful");
+                            resolve(result);
+                        }
+                    );
+                    upload.end(videoBuffer);
+                });
+
+                console.log("✅ RenderVideo step completed successfully");
+                console.log("Video URL:", videoUpload.secure_url);
+                
+                return videoUpload.secure_url;
+
+            } catch (err) {
+                console.error("❌ Cloud Run or Cloudinary error:");
+                
+                if (err.response) {
+                    console.error("Status:", err.response.status);
+                    console.error("Data:", err.response.data);
+                    console.error("Headers:", err.response.headers);
+                } else if (err.request) {
+                    console.error("No response received");
+                } else {
+                    console.error("Error:", err.message);
+                }
+                
+                throw err;
             }
-        )
+        });
 
-        // // Trigger Remotion Cloud Run Render
-        // const RenderVideo = await step.run(
-        //     "renderVideo",
-        //     async () => {
-        //         const services = await getServices({
-        //             region: 'us-east1',
-        //             compatibleOnly: true,
-        //         });
+        // -------------------------------
+        // Update DB with Download URL
+        // -------------------------------
+        await step.run("updateDownloadUrl", async () => {
+            try {
+                console.log("=== Updating Download URL in Database ===");
+                console.log("Record ID:", recordId);
+                console.log("Download URL:", RenderVideo);
 
-        //         const serviceName = services[0].serviceName;
-        //         const result = await renderMediaOnCloudrun({
-        //             serviceName,
-        //             region: 'us-east1',
-        //             serveUrl: process.env.GCP_SERVE_URL,
-        //             composition: 'mritXShorts',
-        //             inputProps: {
-        //                 videoData: {
-        //                     audioUrl: GenerateAudioFile,
-        //                     captionJson: GenerateCaptions,
-        //                     images: GenerateImages
-        //                 }
-        //             },
-        //             codec: 'h264',
+                // Use the dedicated mutation to update only the downloadUrl
+                await convex.mutation(api.videoData.UpdateDownloadUrl, {
+                    recordId: recordId,
+                    downloadUrl: RenderVideo
+                });
 
-        //         });
-        //         if (result.type === 'success') {
-        //             console.log(result.bucketName)
-        //             console.log(result.renderId)
-        //         }
-        //         return result?.publicUrl;
-        //     })
+                console.log("✅ Download URL successfully saved to database");
+                return { success: true, url: RenderVideo };
 
-        // const UpdateDownloadURL = await step.run(
-        //     "updateDownloadURL",
-        //     async () => {
-        //         const result = await convex.mutation(api.videoData.UpdateVideoRecord, {
-        //             recordId: recordId,
-        //             audioUrl: GenerateAudioFile,
-        //             captionJson: GenerateCaptions,
-        //             images: GenerateImages,
-        //             downloadUrl: RenderVideo
-        //         });
-        //         return result;
-        //     }
-        // )
+            } catch (error) {
+                console.error("❌ Failed to update download URL:", error);
+                throw error;
+            }
+        });
+
         return "Process Completed Successfully";
     }
-)
+);

@@ -135,4 +135,18 @@ export const GetUserVideosPaginated = query({
   },
 });
 
+// In convex/videoData.ts
 
+export const UpdateDownloadUrl = mutation({
+  args: {
+    recordId: v.id("videoData"),
+    downloadUrl: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.recordId, {
+      downloadUrl: args.downloadUrl,
+    });
+    
+    return { success: true, recordId: args.recordId };
+  },
+});
