@@ -1,22 +1,22 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Film, Image as ImageIcon, Sparkles, Play, ArrowRight, Video, Layers, Wand2, Music, Scissors, Zap } from "lucide-react";
-
 import { useRouter } from "next/navigation";
 
 export default function CreateNewVideo() {
   const router = useRouter();
   
-  // Generate random starting positions for the icons on mount
-  // We use a fixed count of "flies"
   const flyCount = 15;
   const icons = [Film, Video, ImageIcon, Music, Sparkles, Layers, Wand2, Scissors, Play, Zap];
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-center p-6 selection:bg-yellow-500/30">
+    <div className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center 
+                    transition-colors duration-300
+                    bg-zinc-50 dark:bg-black 
+                    selection:bg-yellow-500/30">
       
-      {/* 🔹 FLYING ICONS BACKGROUND (The "Flies") */}
+      {/* 🔹 FLYING ICONS BACKGROUND */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(flyCount)].map((_, i) => (
             <FlyingIcon key={i} Icon={icons[i % icons.length]} index={i} />
@@ -38,14 +38,16 @@ export default function CreateNewVideo() {
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="inline-block mb-4"
           >
-            <div className="relative p-3 rounded-full border border-yellow-500/20 bg-yellow-500/5 backdrop-blur-sm shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]">
-              <Sparkles className="w-6 h-6 text-yellow-400 fill-yellow-400/20" />
+            <div className="relative p-3 rounded-full backdrop-blur-sm shadow-sm transition-colors duration-300
+                          bg-white border border-yellow-200
+                          dark:bg-yellow-500/5 dark:border-yellow-500/20 dark:shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]">
+              <Sparkles className="w-6 h-6 text-yellow-500 dark:text-yellow-400 fill-yellow-500/20 dark:fill-yellow-400/20" />
             </div>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-white">
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-zinc-900 dark:text-white transition-colors duration-300">
             Create Your <br className="hidden md:block" />
-            <span className="bg-gradient-to-r from-yellow-200 via-yellow-400 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 dark:from-yellow-200 dark:via-yellow-400 dark:to-orange-500 bg-clip-text text-transparent">
               Next Viral Video
             </span>
           </h1>
@@ -54,7 +56,7 @@ export default function CreateNewVideo() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
+            className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-zinc-600 dark:text-gray-400 transition-colors duration-300"
           >
             Choose your preferred workflow to bring your story to life.
           </motion.p>
@@ -86,8 +88,10 @@ export default function CreateNewVideo() {
         </div>
       </div>
 
-      {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none z-20" />
+      {/* Bottom Fade - Adaptive */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-20 transition-colors duration-300
+                    bg-gradient-to-t from-zinc-50 to-transparent
+                    dark:from-black dark:to-transparent" />
     </div>
   );
 }
@@ -95,31 +99,31 @@ export default function CreateNewVideo() {
 // --- Sub-Components ---
 
 function FlyingIcon({ Icon, index }) {
-    // Generate random movement paths
     return (
         <motion.div
             initial={{ 
-                x: Math.random() * 1000, // Random start
+                x: Math.random() * 1000, 
                 y: Math.random() * 1000,
                 opacity: 0,
                 scale: 0
             }}
             animate={{ 
-                x: [null, Math.random() * 1000, Math.random() * -100, Math.random() * 1000], // Wandering path
+                x: [null, Math.random() * 1000, Math.random() * -100, Math.random() * 1000], 
                 y: [null, Math.random() * 800, Math.random() * 1000, Math.random() * -100],
                 rotate: [0, 45, -45, 180, 0],
-                opacity: [0, 0.1, 0.2, 0.1, 0], // Fade in/out naturally
+                opacity: [0, 0.1, 0.2, 0.1, 0], 
                 scale: [0.5, 1, 0.8, 1.2, 0.5]
             }}
             transition={{ 
-                duration: Math.random() * 20 + 20, // Very slow, varying duration (20-40s)
+                duration: Math.random() * 20 + 20,
                 repeat: Infinity,
                 ease: "linear",
-                delay: index * 0.5 // Stagger start times
+                delay: index * 0.5 
             }}
             className="absolute z-0"
         >
-            <Icon className="w-8 h-8 md:w-12 md:h-12 text-yellow-500/10" />
+            <Icon className="w-8 h-8 md:w-12 md:h-12 transition-colors duration-300
+                           text-zinc-300/40 dark:text-yellow-500/10" />
         </motion.div>
     )
 }
@@ -137,19 +141,13 @@ function VideoCard({ title, description, icon: Icon, accentColor, route, router,
   const colors = {
     gold: {
       gradient: "from-yellow-500 to-amber-600",
-      glow: "bg-yellow-500/20",
-      border: "border-yellow-500/30",
-      text: "text-yellow-400",
-      bg: "group-hover:shadow-yellow-500/20",
-      iconBg: "text-yellow-500"
+      glow: "bg-yellow-50 border-yellow-200 dark:bg-yellow-500/20 dark:border-yellow-500/30",
+      text: "text-yellow-600 dark:text-yellow-400",
     },
     orange: {
       gradient: "from-orange-500 to-red-600",
-      glow: "bg-orange-500/20",
-      border: "border-orange-500/30",
-      text: "text-orange-400",
-      bg: "group-hover:shadow-orange-500/20",
-      iconBg: "text-orange-500"
+      glow: "bg-orange-50 border-orange-200 dark:bg-orange-500/20 dark:border-orange-500/30",
+      text: "text-orange-600 dark:text-orange-400",
     },
   };
 
@@ -189,13 +187,15 @@ function VideoCard({ title, description, icon: Icon, accentColor, route, router,
       className={`relative cursor-pointer group h-full`}
     >
       {/* Perspective Container */}
-      <div className="relative h-full bg-[#0a0a0a] backdrop-blur-xl rounded-[2rem] border border-white/10 overflow-hidden transition-all duration-500 group-hover:border-white/20 shadow-2xl">
+      <div className="relative h-full rounded-[2rem] overflow-hidden transition-all duration-500 shadow-2xl
+                      bg-white border border-zinc-200
+                      dark:bg-[#0a0a0a] dark:backdrop-blur-xl dark:border-white/10 dark:group-hover:border-white/20">
         
         {/* Spotlight Gradient Follower */}
         <motion.div 
             className="absolute -inset-px rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"
             style={{
-                background: `radial-gradient(600px circle at ${useTransform(mouseX, v => (v + 0.5) * 100).get()}% ${useTransform(mouseY, v => (v + 0.5) * 100).get()}%, rgba(255,255,255,0.04), transparent 40%)`
+                background: `radial-gradient(600px circle at ${useTransform(mouseX, v => (v + 0.5) * 100).get()}% ${useTransform(mouseY, v => (v + 0.5) * 100).get()}%, var(--spotlight-color), transparent 40%)`
             }}
         />
 
@@ -204,7 +204,7 @@ function VideoCard({ title, description, icon: Icon, accentColor, route, router,
           {/* Icon Area */}
           <div className="mb-8 flex items-center justify-between">
              {/* Animated Icon Container */}
-            <div className={`relative w-16 h-16 flex items-center justify-center rounded-2xl ${color.glow} border ${color.border} backdrop-blur-sm overflow-hidden`}>
+            <div className={`relative w-16 h-16 flex items-center justify-center rounded-2xl ${color.glow} border backdrop-blur-sm overflow-hidden transition-colors duration-300`}>
                 <motion.div
                     animate={{
                         rotate: isHovered ? 15 : 0,
@@ -227,7 +227,9 @@ function VideoCard({ title, description, icon: Icon, accentColor, route, router,
             
             <motion.div 
                 animate={{ x: isHovered ? 5 : 0 }}
-                className={`p-2 rounded-full border border-white/5 bg-white/5 text-white/50 group-hover:text-white transition-colors`}
+                className={`p-2 rounded-full transition-colors duration-300
+                          border border-zinc-100 bg-zinc-50 text-zinc-400 group-hover:text-zinc-900
+                          dark:border-white/5 dark:bg-white/5 dark:text-white/50 dark:group-hover:text-white`}
             >
                 <ArrowRight className="w-5 h-5" />
             </motion.div>
@@ -235,10 +237,14 @@ function VideoCard({ title, description, icon: Icon, accentColor, route, router,
 
           {/* Text Content */}
           <div className="flex-grow">
-            <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-yellow-200 transition-all">
+            <h3 className="text-2xl font-bold mb-3 transition-all duration-300
+                         text-zinc-900 group-hover:text-yellow-600
+                         dark:text-white dark:group-hover:text-transparent dark:group-hover:bg-clip-text dark:group-hover:bg-gradient-to-r dark:group-hover:from-white dark:group-hover:to-yellow-200">
               {title}
             </h3>
-            <p className="text-gray-400 text-sm md:text-base leading-relaxed mb-6 group-hover:text-gray-300 transition-colors">
+            <p className="text-sm md:text-base leading-relaxed mb-6 transition-colors duration-300
+                        text-zinc-600 group-hover:text-zinc-900
+                        dark:text-gray-400 dark:group-hover:text-gray-300">
               {description}
             </p>
           </div>
@@ -248,7 +254,9 @@ function VideoCard({ title, description, icon: Icon, accentColor, route, router,
             {features.map((feature, i) => (
               <div 
                 key={i}
-                className={`px-3 py-1 rounded-full text-xs font-medium border border-white/5 bg-white/5 text-gray-400 group-hover:border-white/10 group-hover:text-white transition-colors`}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors duration-300
+                          border-zinc-200 bg-zinc-100 text-zinc-500 group-hover:border-zinc-300 group-hover:text-zinc-800
+                          dark:border-white/5 dark:bg-white/5 dark:text-gray-400 dark:group-hover:border-white/10 dark:group-hover:text-white`}
               >
                 {feature}
               </div>

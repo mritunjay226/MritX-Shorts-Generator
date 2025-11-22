@@ -1,7 +1,8 @@
 'use client';
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sparkles, Wand2, Zap, Play, Image, Video, FileText, Mic, Palette, Music, Brain, Hash, TrendingUp, Captions, Pause } from "lucide-react";
+import { useInView } from "@/hooks/use-in-view";
 
 const STEPS = [
   { id: 1, icon: Image, label: "Upload Content", color: "pink", description: "Analyzing your content..." },
@@ -15,48 +16,26 @@ const STEPS = [
   { id: 9, icon: TrendingUp, label: "Video Ready", color: "orange", description: "Optimizing for upload..." },
 ];
 
+// Explicit color mapping for Tailwind
+const COLOR_VARIANTS = {
+  pink: { bg: "bg-pink-400/40", from: "from-pink-600" },
+  amber: { bg: "bg-amber-400/40", from: "from-amber-500" },
+  orange: { bg: "bg-orange-400/40", from: "from-orange-500" },
+};
+
 export default function ShortsGen() {
   const [currentStep, setCurrentStep] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
   const prefersReducedMotion = useReducedMotion();
-  const sectionRef = useRef(null);
-  const [isInView, setIsInView] = useState(false);
+  
+  const { ref, isInView } = useInView({ threshold: 0.3 });
 
-  // Detect when section comes into view
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const inView = entry.isIntersecting;
-        setIsInView(inView);
-        
-        // Start animation only once when it comes into view
-        if (inView && !hasStarted) {
-          setHasStarted(true);
-        }
-        
-        // Reset when out of view for fresh start next time
-        if (!inView && hasStarted) {
-          setCurrentStep(0);
-          setShowVideo(false);
-          setIsVideoPlaying(false);
-          setHasStarted(false);
-        }
-      },
-      { threshold: 0.3 } // Requires 30% visibility to start
-    );
-    
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    if (!isInView) {
+        setIsVideoPlaying(false);
+        return;
     }
-    
-    return () => observer.disconnect();
-  }, [hasStarted]);
-
-  // Animation loop - only runs when in view AND has started
-  useEffect(() => {
-    if (!isInView || !hasStarted) return;
 
     const interval = setInterval(() => {
       if (currentStep < STEPS.length) {
@@ -73,23 +52,22 @@ export default function ShortsGen() {
     }, prefersReducedMotion ? 500 : 1000);
 
     return () => clearInterval(interval);
-  }, [currentStep, showVideo, isInView, hasStarted, prefersReducedMotion]);
-
-  // Memoize sparkles to prevent re-renders
-  const sparklePositions = useMemo(() => 
-    Array.from({ length: 8 }, (_, i) => ({
-      x: Math.cos((i * Math.PI * 2) / 8) * 200,
-      y: Math.sin((i * Math.PI * 2) / 8) * 200,
-    })), []
-  );
+  }, [currentStep, showVideo, isInView, prefersReducedMotion]);
 
   return (
-    <section ref={sectionRef} className="relative min-h-screen mb-12 bg-black py-10 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-4 overflow-hidden">
-      {/* Simplified Background - CSS only */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse-slow-delayed" />
-      </div>
+    <section 
+        ref={ref} 
+        className="relative min-h-screen mb-12 py-10 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-4 overflow-hidden transition-colors duration-300
+                   bg-zinc-50 dark:bg-black"
+    >
+      
+      {/* --- UPDATED BACKGROUND (Matches FAQ Section) --- */}
+      {/* Light Mode: Soft Yellow/Orange Wash. Dark Mode: Deep Glowing Blobs */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[120px] pointer-events-none 
+                    bg-yellow-200/40 dark:bg-orange-500/5" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[100px] pointer-events-none 
+                    bg-orange-200/40 dark:bg-yellow-500/5" />
+      {/* ----------------------------------------------- */}
 
       <div className="relative max-w-7xl mx-auto">
         {/* Header */}
@@ -100,31 +78,35 @@ export default function ShortsGen() {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 mb-4 sm:mb-6">
-            <Video className="text-yellow-400" size={14} />
-            <span className="text-yellow-400 text-xs sm:text-sm font-semibold">YouTube Shorts Generator</span>
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full mb-4 sm:mb-6
+                          bg-yellow-100 border border-yellow-200
+                          dark:bg-yellow-500/10 dark:border-yellow-500/20">
+            <Video className="text-yellow-600 dark:text-yellow-400" size={14} />
+            <span className="text-yellow-700 dark:text-yellow-400 text-xs sm:text-sm font-semibold">YouTube Shorts Generator</span>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-3 sm:mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 text-zinc-900 dark:text-white">
             Create Viral{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 dark:from-yellow-400 dark:via-orange-400 dark:to-red-500">
               Shorts in Minutes
             </span>
           </h2>
-          <p className="text-white/60 text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed text-zinc-600 dark:text-white/60">
             Transform your ideas into stunning TikTok and YouTube Shorts. Our AI handles the heavy lifting from concept to publication.
           </p>
         </motion.div>
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-center">
-          {/* Left Side - Optimized Animation */}
+          {/* Left Side - Animation Container */}
           <div className="relative h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] flex items-center justify-center">
             
-            {/* Central Card - GPU Accelerated */}
+            {/* Central Card */}
             <motion.div
-              className="relative w-56 sm:w-64 md:w-72 h-[320px] sm:h-[380px] md:h-[500px] rounded-2xl overflow-hidden shadow-2xl border-2 border-yellow-500/30"
-              animate={isInView && hasStarted ? {
+              className="relative w-56 sm:w-64 md:w-72 h-[320px] sm:h-[380px] md:h-[500px] rounded-2xl overflow-hidden shadow-2xl 
+                         border-2 bg-black
+                         border-zinc-200 dark:border-yellow-500/30"
+              animate={isInView ? {
                 y: prefersReducedMotion ? 0 : [0, -20, 0],
                 rotateY: showVideo ? [0, 360] : 0,
               } : {}}
@@ -138,13 +120,14 @@ export default function ShortsGen() {
                 backfaceVisibility: 'hidden',
               }}
             >
-              {/* Simplified Glow - CSS animation */}
+              {/* Glow Effect */}
               <div 
-                className={`absolute -inset-1 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-2xl blur-lg ${hasStarted && (showVideo ? 'animate-pulse-fast' : 'animate-pulse')}`}
+                className={`absolute -inset-1 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-2xl blur-lg 
+                           ${isInView && (showVideo ? 'animate-pulse-fast' : 'animate-pulse')}`}
               />
 
               {/* Card Content */}
-              <div className="relative w-full h-full bg-gradient-to-br from-zinc-900 to-black">
+              <div className="relative w-full h-full bg-zinc-950">
                 <AnimatePresence mode="wait">
                   {!showVideo ? (
                     <motion.div
@@ -153,23 +136,23 @@ export default function ShortsGen() {
                       exit={{ opacity: 0 }}
                       className="absolute inset-0 flex flex-col items-center justify-center p-6"
                     >
-                      <div className={`mb-4 ${hasStarted ? 'animate-spin-slow' : ''}`}>
+                      <div className={`mb-4 ${isInView ? 'animate-spin-slow' : ''}`}>
                         <Wand2 className="text-yellow-400" size={48} />
                       </div>
                       <p className="text-white font-semibold text-lg mb-2">
-                        {hasStarted ? 'Creating Magic...' : 'Ready to Create'}
+                        {isInView ? 'Creating Magic...' : 'Ready to Create'}
                       </p>
                       <motion.p 
-                        className="text-white/60 text-sm text-center"
+                        className="text-zinc-400 text-sm text-center"
                         key={currentStep}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.3 }}
                       >
-                        {hasStarted ? (STEPS[currentStep - 1]?.description || "Initializing...") : "Scroll to start the magic"}
+                        {isInView ? (STEPS[currentStep - 1]?.description || "Initializing...") : "Scroll to start the magic"}
                       </motion.p>
                       
-                      {/* Optimized Progress Bar */}
+                      {/* Progress Bar */}
                       <div className="w-full mt-6">
                         <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                           <div
@@ -177,7 +160,7 @@ export default function ShortsGen() {
                             style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
                           />
                         </div>
-                        <p className="text-white/40 text-xs mt-2 text-center">
+                        <p className="text-zinc-500 text-xs mt-2 text-center">
                           Step {currentStep} of {STEPS.length}
                         </p>
                       </div>
@@ -193,28 +176,25 @@ export default function ShortsGen() {
                     >
                       <video 
                         src="https://image01.cf.vidu.studio/vidu/landing-page/travel.a52da706.mp4"
-                        autoPlay
+                        autoPlay={isInView}
                         loop
                         muted
                         playsInline
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                       
-                      {/* Video Indicator */}
                       <div className="absolute top-4 right-4 bg-green-500 rounded-full p-2">
                         {isVideoPlaying ? <Play className="text-white" size={20} /> : <Pause className="text-white" size={20} />}
                       </div>
 
-                      {/* Captions */}
-                      <div className="absolute bottom-20 left-4 right-4 bg-black/80 rounded-lg p-3">
+                      <div className="absolute bottom-20 left-4 right-4 bg-black/60 backdrop-blur-sm rounded-lg p-3">
                         <p className="text-white text-sm font-bold text-center animate-pulse">
                           Auto-generated captions ✨
                         </p>
                       </div>
 
-                      {/* Music Indicator - Simplified */}
-                      <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/60 rounded-full px-3 py-2">
+                      <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/60 backdrop-blur-sm rounded-full px-3 py-2">
                         <Music className="text-yellow-400" size={16} />
                         <div className="flex gap-1">
                           {[4, 12, 4].map((h, i) => (
@@ -229,73 +209,41 @@ export default function ShortsGen() {
                           ))}
                         </div>
                       </div>
-
-                      {/* Hashtags */}
-                      <div className="absolute top-16 left-4 right-4 flex flex-wrap gap-2">
-                        {["#viral", "#trending", "#ai"].map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-xs bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded-full border border-yellow-400/30"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 text-white">
-                        <Video size={20} />
-                        <span className="font-semibold">Video Created!</span>
-                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             </motion.div>
 
-            {/* Optimized Flying Icons - Only current step */}
+            {/* Flying Icons */}
             <AnimatePresence mode="wait">
               {STEPS.map((step, index) => {
                 const StepIcon = step.icon;
                 const isActive = currentStep === index + 1;
                 
                 if (!isActive || prefersReducedMotion) return null;
-
                 const fromLeft = index % 2 === 0;
+                // Get safe colors
+                const colors = COLOR_VARIANTS[step.color] || COLOR_VARIANTS.amber;
 
                 return (
                   <motion.div
                     key={step.id}
                     className="absolute z-20"
-                    initial={{
-                      x: fromLeft ? -200 : 200,
-                      y: -50,
-                      scale: 0,
-                      opacity: 0,
-                    }}
-                    animate={{
-                      x: 0,
-                      y: 0,
-                      scale: [0, 1.5, 0],
-                      opacity: [0, 1, 0],
-                    }}
-                    transition={{
-                      duration: 1,
-                      ease: "easeOut",
-                    }}
+                    initial={{ x: fromLeft ? -200 : 200, y: -50, scale: 0, opacity: 0 }}
+                    animate={{ x: 0, y: 0, scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+                    transition={{ duration: 1, ease: "easeOut" }}
                     style={{ willChange: 'transform, opacity' }}
                   >
                     <div className="relative">
-                      {/* Simplified Glow */}
-                      <div className={`absolute -inset-4 bg-${step.color}-400/40 rounded-full blur-xl`} />
+                      <div className={`absolute -inset-4 ${colors.bg} rounded-full blur-xl`} />
                       
-                      {/* Icon Container */}
-                      <div className={`relative w-20 h-20 bg-gradient-to-br from-yellow-400 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl`}>
+                      <div className={`relative w-20 h-20 bg-gradient-to-br from-yellow-400 ${colors.from} rounded-2xl flex items-center justify-center shadow-2xl`}>
                         <StepIcon className="text-black" size={36} />
                       </div>
 
-                      {/* Label */}
                       <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-white text-sm font-bold bg-gradient-to-r from-pink-500/80 to-amber-500/80 px-4 py-2 rounded-full shadow-lg border border-yellow-400/30">
+                        <span className="text-white text-sm font-bold bg-gradient-to-r from-pink-600 to-amber-600 px-4 py-2 rounded-full shadow-lg border border-white/20">
                           {step.label}
                         </span>
                       </div>
@@ -305,23 +253,7 @@ export default function ShortsGen() {
               })}
             </AnimatePresence>
 
-            {/* Simplified Sparkles - Fewer, CSS animated */}
-            {!prefersReducedMotion && sparklePositions.slice(0, 4).map((pos, i) => (
-              <div
-                key={i}
-                className="absolute animate-sparkle"
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(${pos.x}px, ${pos.y}px)`,
-                  animationDelay: `${i * 0.3}s`,
-                }}
-              >
-                
-              </div>
-            ))}
-
-            {/* Simplified Celebration - Only when video shows */}
+            {/* Celebration Burst */}
             {showVideo && !prefersReducedMotion && (
               <div className="absolute inset-0 pointer-events-none">
                 {Array.from({ length: 6 }).map((_, i) => {
@@ -335,7 +267,7 @@ export default function ShortsGen() {
                         animationDelay: `${i * 0.05}s`,
                       }}
                     >
-                      <Zap className="text-yellow-400" size={24} />
+                      <Zap className="text-yellow-500" size={24} />
                     </div>
                   );
                 })}
@@ -352,29 +284,27 @@ export default function ShortsGen() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <div>
-              <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4">
+              <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4 text-zinc-900 dark:text-white">
                 Professional Shorts{" "}
-                <span className="text-yellow-400">Made Easy</span>
+                <span className="text-yellow-600 dark:text-yellow-400">Made Easy</span>
               </h3>
-              <p className="text-white/60 text-sm sm:text-base md:text-lg leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg leading-relaxed text-zinc-600 dark:text-white/60">
                 No editing experience needed. Let our AI handle scriptwriting, voiceovers, music selection, and effects. Focus on your idea, we handle the production.
               </p>
             </div>
 
-            {/* Process Description */}
             <div className="space-y-3 sm:space-y-4">
-              <h4 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">From Concept to Ready-to-Upload</h4>
-              <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+              <h4 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-zinc-800 dark:text-white">From Concept to Ready-to-Upload</h4>
+              <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-white/70">
                 Simply upload your idea, footage, or even a rough concept. Our AI analyzes your content and automatically generates a complete, polished short through 9 intelligent production steps.
               </p>
-              <p className="text-white/70 text-sm sm:text-base leading-relaxed">
+              <p className="text-sm sm:text-base leading-relaxed text-zinc-600 dark:text-white/70">
                 Get a production-ready short optimized for TikTok, YouTube Shorts, and Instagram Reels. Every element—from pacing to trending sounds—is calibrated for maximum virality and viewer engagement.
               </p>
             </div>
 
-            {/* CTA Button */}
             <motion.button
-              className="group relative w-full px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-black overflow-hidden mt-4 sm:mt-6"
+              className="group relative w-full px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-bold text-black overflow-hidden mt-4 sm:mt-6 shadow-lg shadow-orange-500/20"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -387,8 +317,7 @@ export default function ShortsGen() {
               </span>
             </motion.button>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 sm:pt-6">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-zinc-200 dark:border-white/10">
               {[
                 { label: "Shorts Created", value: "50K+" },
                 { label: "Avg Views", value: "1.8M" },
@@ -402,62 +331,16 @@ export default function ShortsGen() {
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ delay: 0.3 + i * 0.1 }}
                 >
-                  <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-yellow-400 dark:to-amber-500 bg-clip-text text-transparent">
                     {stat.value}
                   </div>
-                  <div className="text-white/60 text-xs sm:text-sm mt-1">{stat.label}</div>
+                  <div className="text-xs sm:text-sm mt-1 text-zinc-500 dark:text-white/60">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
         </div>
       </div>
-
-      {/* CSS Animations */}
-      <style jsx>{`
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.2); }
-        }
-        
-        @keyframes pulse-slow-delayed {
-          0%, 100% { opacity: 0.5; transform: scale(1.3); }
-          50% { opacity: 0.3; transform: scale(1); }
-        }
-        
-        @keyframes pulse-fast {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.8; }
-        }
-        
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
-        @keyframes music-bar {
-          0%, 100% { height: 4px; }
-          50% { height: 12px; }
-        }
-        
-        @keyframes sparkle {
-          0%, 100% { opacity: 0; transform: scale(0); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-        
-        @keyframes burst {
-          0% { opacity: 1; transform: scale(0); }
-          100% { opacity: 0; transform: scale(1); }
-        }
-        
-        .animate-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
-        .animate-pulse-slow-delayed { animation: pulse-slow-delayed 6s ease-in-out infinite 1s; }
-        .animate-pulse-fast { animation: pulse-fast 2s ease-in-out infinite; }
-        .animate-spin-slow { animation: spin-slow 2s linear infinite; }
-        .animate-music-bar { animation: music-bar 0.6s ease-in-out infinite; }
-        .animate-sparkle { animation: sparkle 1.5s ease-out infinite; }
-        .animate-burst { animation: burst 1s ease-out forwards; }
-      `}</style>
     </section>
   );
 }

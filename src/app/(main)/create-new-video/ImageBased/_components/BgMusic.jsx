@@ -1,6 +1,6 @@
 'use client';
 import React, { useRef, useState } from "react";
-import { Music, PlayIcon, PauseIcon } from "lucide-react";
+import { Music, Play, Pause, Volume2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const BgMusics = [
@@ -43,77 +43,102 @@ const BgMusic = ({ onHandleInputChange }) => {
   };
 
   return (
-    <div className="mt-8 p-4 border border-gray-800 rounded-xl">
-      <h2 className="flex items-center gap-2 mb-1">
-        <Music className="text-orange-600" /> Background Music (Optional)
+    <div className="transition-all duration-300">
+      
+      {/* Header */}
+      <h2 className='flex items-center gap-2 font-semibold text-lg text-zinc-900 dark:text-white mb-1'>
+        <span className='p-1.5 rounded-md bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400'>
+            <Music className="w-4 h-4" />
+        </span>
+        Background Music
       </h2>
-      <p className="text-sm text-gray-400 mb-3">
-        Select background music for your video
+      <p className='text-sm text-zinc-500 dark:text-gray-400 ml-9 mb-4'>
+        Choose a vibe for your video (Optional).
       </p>
 
-      <ScrollArea className="h-[300px] w-full">
+      <ScrollArea className="h-[300px] w-full pr-4">
         <div className="flex flex-col gap-3">
-          {BgMusics.map((music, index) => (
-            <div
-              key={index}
-              className={`flex items-center justify-between p-4 rounded-lg border border-gray-800 transition-all ${
-                selectedMusic === index
-                  ? "bg-gradient-to-r from-pink-400/30 to-purple-500/30"
-                  : "bg-zinc-800"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {/* Play / Pause Button */}
+          {BgMusics.map((music, index) => {
+            const isSelected = selectedMusic === index;
+            const isPlaying = playingIndex === index;
+
+            return (
+              <div
+                key={index}
+                className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 
+                  ${isSelected
+                    // Selected State
+                    ? "bg-yellow-50 border-yellow-500 ring-1 ring-yellow-500 dark:bg-yellow-500/10 dark:border-yellow-500"
+                    // Default State
+                    : "bg-white border-zinc-200 hover:border-zinc-300 dark:bg-zinc-900 dark:border-zinc-800 dark:hover:border-zinc-700"
+                  }`}
+              >
+                <div className="flex items-center gap-4 overflow-hidden">
+                  
+                  {/* Play / Pause Button */}
+                  <button
+                    onClick={() => togglePlay(index)}
+                    className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors
+                        ${isPlaying
+                            ? "bg-yellow-500 text-black shadow-md"
+                            : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                        }`}
+                  >
+                    {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+                  </button>
+
+                  {/* Track Name & Visualizer */}
+                  <div className="flex flex-col justify-center min-w-0">
+                    <h3 className={`text-sm font-medium truncate transition-colors
+                        ${isSelected ? "text-zinc-900 dark:text-white" : "text-zinc-700 dark:text-zinc-300"}`}>
+                      {music.name}
+                    </h3>
+                    
+                    {isPlaying && (
+                        <div className="flex gap-0.5 mt-1 h-3 items-end">
+                            <span className="w-0.5 bg-yellow-500 animate-[music-bar_0.6s_ease-in-out_infinite]" />
+                            <span className="w-0.5 bg-yellow-500 animate-[music-bar_0.8s_ease-in-out_infinite_0.1s]" />
+                            <span className="w-0.5 bg-yellow-500 animate-[music-bar_0.5s_ease-in-out_infinite_0.2s]" />
+                            <span className="w-0.5 bg-yellow-500 animate-[music-bar_0.7s_ease-in-out_infinite_0.3s]" />
+                            <span className="text-[10px] text-yellow-600 dark:text-yellow-400 ml-1 font-medium">Playing</span>
+                        </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Select Button */}
                 <button
-                  onClick={() => togglePlay(index)}
-                  className="cursor-pointer"
+                    onClick={() => {
+                        setSelectedMusic(index);
+                        onHandleInputChange("bgMusic", music);
+                    }}
+                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all
+                        ${isSelected 
+                            ? "bg-yellow-500 text-black shadow-sm" 
+                            : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                        }`}
                 >
-                  {playingIndex === index ? (
-                    <PauseIcon className="text-pink-500" />
-                  ) : (
-                    <PlayIcon className="text-gray-300" />
-                  )}
+                    {isSelected ? 'Selected' : 'Select'}
                 </button>
 
-                {/* Track Name */}
-                <h3
-                  className={`text-sm ${
-                    selectedMusic === index
-                      ? "text-pink-400 font-semibold"
-                      : "text-gray-100"
-                  }`}
-                >
-                  {music.name}
-                </h3>
+                {/* Hidden Audio Element */}
+                <audio
+                  ref={(el) => (audioRefs.current[index] = el)}
+                  src={music.src}
+                  onEnded={() => setPlayingIndex(null)}
+                />
               </div>
-
-              {/* Select Button */}
-              {selectedMusic === index ? (
-                <span className="p-1 border border-gray-600 rounded-lg text-sm text-pink-400 cursor-pointer">
-                  Selected
-                </span>
-              ) : (
-                <span
-                  className="p-1 border border-gray-600 bg-black rounded-lg text-sm text-gray-100 cursor-pointer hover:bg-gray-900"
-                  onClick={() => {
-                    setSelectedMusic(index);
-                    onHandleInputChange("bgMusic", music);
-                  }}
-                >
-                  Select
-                </span>
-              )}
-
-              {/* Hidden Audio Element */}
-              <audio
-                ref={(el) => (audioRefs.current[index] = el)}
-                src={music.src}
-                onEnded={() => setPlayingIndex(null)}
-              />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </ScrollArea>
+      
+      <style jsx>{`
+        @keyframes music-bar {
+            0%, 100% { height: 4px; }
+            50% { height: 12px; }
+        }
+      `}</style>
     </div>
   );
 };

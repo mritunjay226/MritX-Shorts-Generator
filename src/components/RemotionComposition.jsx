@@ -7,7 +7,8 @@ import {
   interpolate,
   Sequence,
   useCurrentFrame,
-  useVideoConfig
+  useVideoConfig,
+  staticFile
 } from 'remotion';
 
 const RemotionComposition = ({ videoData }) => {
@@ -34,12 +35,23 @@ const RemotionComposition = ({ videoData }) => {
     return active ? active.word : '';
   };
 
+  // Helper to ensure audio URL is valid
+  const getAudioSrc = (url) => {
+    if (!url) return null;
+    // If it's a relative path, use staticFile
+    if (url.startsWith('/')) {
+      return staticFile(url);
+    }
+    // If it's an absolute URL, use as is
+    return url;
+  };
+
   return (
     <AbsoluteFill style={{ background: 'black' }}>
 
       {/* Images */}
       {images.map((item, index) => {
-        const start = index * imageDuration;
+        const start = Math.floor(index * imageDuration);
 
         const inputRange = [
           start,
@@ -72,7 +84,7 @@ const RemotionComposition = ({ videoData }) => {
         );
 
         return (
-          <Sequence key={index} from={start} durationInFrames={imageDuration}>
+          <Sequence key={index} from={start} durationInFrames={Math.floor(imageDuration)}>
             <AbsoluteFill>
               <Img
                 src={item}
@@ -103,21 +115,31 @@ const RemotionComposition = ({ videoData }) => {
             fontSize: 48,
             color: 'white',
             textShadow: '2px 2px 10px rgba(0,0,0,0.8)',
+            fontWeight: 'bold',
+            padding: '0 20px'
           }}
         >
           {getCurrentCaption()}
         </h2>
       </AbsoluteFill>
 
-      {/* Main Audio */}
+      {/* Main Audio - FIXED */}
       {videoData?.audioUrl && (
-        <Audio src={videoData.audioUrl} volume={1} />
+        <Audio 
+          src={getAudioSrc(videoData.audioUrl)} 
+          volume={1}
+          startFrom={0}
+        />
       )}
 
-      {/* Background Music */}
+      {/* Background Music - FIXED */}
       {videoData?.bgMusic?.src && (
-        <Sequence from={15}>
-          <Audio src={videoData.bgMusic.src} volume={0.1} />
+        <Sequence from={0}>
+          <Audio 
+            src={getAudioSrc(videoData.bgMusic.src)} 
+            volume={0.15}
+            startFrom={0}
+          />
         </Sequence>
       )}
 

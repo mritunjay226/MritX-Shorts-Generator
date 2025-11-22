@@ -26,19 +26,22 @@ export const generateScript = model.startChat({
       role: "user",
       parts: [
         {
-          text: `Write a two different script for 30 to 45 Seconds video on Topic: {topic} in Hinglish. 
-Do not add Scene description.
-Do not add speaker names or narrator info.
-Do not add anything in braces. 
-Just return plain story text. 
-after that give me json array of objects with each object containing "content" and "mood" keys.
-The "content" key should have the script content for each scene and the "mood" key should have the mood of that particular script.
-Make sure the total script is of 30 seconds only.
-Give me response in JSON format as:
+          text: `Write 2 viral short video scripts (30-45 seconds) on the topic: "{topic}".
+Language: Hinglish (Conversational, engaging).
+Structure for each script:
+1. **Hook (0-5s)**: Grab attention immediately (Shocking fact, Question, or Mystery).
+2. **Body**: Tell a compelling story or explain the fact with high energy. Keep sentences short.
+3. **Conclusion**: A strong ending or call to action.
+Constraints:
+- No scene descriptions or speaker labels.
+- No text in brackets/braces.
+- Focus on storytelling and emotion, not just dry facts.
+- Make it sound like a popular YouTuber/Influencer.
+Return JSON format:
 {
   "scripts": [
-    { "content": "..." , mood: "..."},
-    { "content": "..." , mood: "..."}
+    { "content": "...", "mood": "..." },
+    { "content": "...", "mood": "..." }
   ]
 }`,
         },

@@ -42,7 +42,7 @@ const Provider = ({ children }) => {
     >
       <NextThemesProvider
         attribute="class"
-        defaultTheme="dark"
+        defaultTheme="system" // Follow system preference by default
         enableSystem
         disableTransitionOnChange
       >

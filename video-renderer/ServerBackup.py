@@ -1,13 +1,11 @@
-# server.py (COMPLETE FIXED VERSION)
+# server.py (UPDATED)
 from flask import Flask, request, jsonify
 import os
 import subprocess
 import uuid
 import requests
 import base64
-import tempfile
-
-TEMP_DIR = tempfile.gettempdir()
+import re
 
 app = Flask(__name__)
 
@@ -32,117 +30,124 @@ def sanitize_text_for_ffmpeg(text):
     text = text.replace("'", "'\\\\\\''")
     text = text.replace(":", "\\:")
     text = text.replace("%", "\\%")
+    # Also escape comma for ASS lines
     text = text.replace(",", "\\,")
     return text
 
 # -----------------------------
 # Map caption preset name -> ASS style values
-# ASS Color Format: &HAABBGGRR (Alpha, Blue, Green, Red)
+# (Tailwind-style presets -> ASS style)
 # -----------------------------
 def caption_preset_to_ass_style(preset_name, overrides=None):
     """
     Returns a dict of ASS style properties for a given preset_name.
-    ASS uses BGR color format (reverse of RGB)
+    You can pass `overrides` dict to replace values (e.g., fontsize, primary, outline).
     """
     presets = {
         "Youtuber": {
-            "Fontname": "Arial Black",
-            "Fontsize": 20,
-            "PrimaryColour": "&H0015CCFA",   # Yellow (#FACC15 -> BGR: 15CCFA)
-            "OutlineColour": "&H00000000",   # Black outline
-            "Bold": -1,
-            "Italic": 0,
-            "Outline": 4,
-            "Shadow": 3,
-            "Alignment": 2,
-            "MarginV": 70
-        },
-        "Supreme": {
-            "Fontname": "Arial Black",
-            "Fontsize": 20,
-            "PrimaryColour": "&H00FFFFFF",   # White
-            "OutlineColour": "&H00000000",   # Black outline
-            "Bold": -1,
-            "Italic": 1,
-            "Outline": 3,
-            "Shadow": 4,
-            "Alignment": 2,
-            "MarginV": 70
-        },
-        "Neon": {
-            "Fontname": "Arial Black",
-            "Fontsize": 20,
-            "PrimaryColour": "&H005EC522",   # Green (#22C55E -> BGR: 5EC522)
-            "OutlineColour": "&H00000000",   # Black for glow
-            "Bold": -1,
-            "Italic": 0,
-            "Outline": 5,
-            "Shadow": 3,
-            "Alignment": 2,
-            "MarginV": 65
-        },
-        "Glitch": {
-            "Fontname": "Arial Black",
-            "Fontsize": 20,
-            "PrimaryColour": "&H009948EC",   # Pink (#EC4899 -> BGR: 9948EC)
-            "OutlineColour": "&H00F755A8",   # Purple (#A855F7 -> BGR: F755A8)
-            "Bold": -1,
-            "Italic": 0,
-            "Outline": 1,
-            "Shadow": 5,
-            "Alignment": 2,
-            "MarginV": 65
-        },
-        "Fire": {
-            "Fontname": "Arial Black",
-            "Fontsize": 20,
-            "PrimaryColour": "&H004444EF",   # Red (#EF4444 -> BGR: 4444EF)
-            "OutlineColour": "&H00000000",   # Black outline
-            "Bold": -1,
-            "Italic": 0,
-            "Outline": 5,
-            "Shadow": 4,
-            "Alignment": 2,
-            "MarginV": 60
-        },
-        "Futuristic": {
             "Fontname": "Arial",
-            "Fontsize": 20,
-            "PrimaryColour": "&H00F6823B",   # Blue (#3B82F6 -> BGR: F6823B)
-            "OutlineColour": "&H00808080",   # Grey outline
+            "Fontsize": 56,
+            "PrimaryColour": "&H00FFFF00",  # yellowish (BGR hex in ASS)
+            "OutlineColour": "&H00000000",
             "Bold": -1,
             "Italic": 0,
             "Outline": 3,
             "Shadow": 2,
-            "Alignment": 2,
-            "MarginV": 70
+            "Alignment": 2,  # bottom-center
+            "MarginV": 80
         },
-        "Default": {
+        "Supreme": {
+            "Fontname": "Arial",
+            "Fontsize": 52,
+            "PrimaryColour": "&H00FFFFFF",
+            "OutlineColour": "&H00000000",
+            "Bold": -1,
+            "Italic": 1,
+            "Outline": 2,
+            "Shadow": 2,
+            "Alignment": 2,
+            "MarginV": 80
+        },
+        "Neon": {
+            "Fontname": "Arial",
+            "Fontsize": 54,
+            "PrimaryColour": "&H0000FF00",  # greenish
+            "OutlineColour": "&H00000000",
+            "Bold": -1,
+            "Italic": 0,
+            "Outline": 3,
+            "Shadow": 3,
+            "Alignment": 2,
+            "MarginV": 80
+        },
+        "Glitch": {
+            "Fontname": "Arial",
+            "Fontsize": 54,
+            "PrimaryColour": "&H00FF00FF",  # pink-ish
+            "OutlineColour": "&H00000000",
+            "Bold": -1,
+            "Italic": 0,
+            "Outline": 3,
+            "Shadow": 4,
+            "Alignment": 2,
+            "MarginV": 80
+        },
+        "Fire": {
+            "Fontname": "Arial",
+            "Fontsize": 56,
+            "PrimaryColour": "&H000000FF",  # red (ASS hex is &HAABBGGRR but our strings use simple forms)
+            "OutlineColour": "&H00000000",
+            "Bold": -1,
+            "Italic": 0,
+            "Outline": 4,
+            "Shadow": 2,
+            "Alignment": 2,
+            "MarginV": 80
+        },
+        "Futuristic": {
             "Fontname": "Arial",
             "Fontsize": 50,
-            "PrimaryColour": "&H00FFFFFF",   # White
-            "OutlineColour": "&H00000000",   # Black
+            "PrimaryColour": "&H00FF0000",  # blue-ish
+            "OutlineColour": "&H00000000",
             "Bold": -1,
             "Italic": 0,
             "Outline": 2,
             "Shadow": 1,
             "Alignment": 2,
-            "MarginV": 75
+            "MarginV": 80
+        },
+        # default
+        "Default": {
+            "Fontname": "Arial",
+            "Fontsize": 48,
+            "PrimaryColour": "&H00FFFFFF",
+            "OutlineColour": "&H00000000",
+            "Bold": -1,
+            "Italic": 0,
+            "Outline": 2,
+            "Shadow": 1,
+            "Alignment": 2,
+            "MarginV": 80
         }
     }
 
     base = presets.get(preset_name, presets["Default"]).copy()
     if overrides:
         for k, v in overrides.items():
-            base[k] = v
+            if k in base:
+                base[k] = v
+            else:
+                base[k] = v
     return base
 
 # -----------------------------
 # Compose ASS style line from properties
 # -----------------------------
 def build_ass_style_line(style_name, style_props):
+    # ASS colors are BGR in hex and prefixed with &H
+    # We expect PrimaryColour and OutlineColour strings already in &H format above.
     Fontname = style_props.get("Fontname", "Arial")
-    Fontsize = style_props.get("Fontsize", 20)
+    Fontsize = style_props.get("Fontsize", 48)
     PrimaryColour = style_props.get("PrimaryColour", "&H00FFFFFF")
     SecondaryColour = style_props.get("SecondaryColour", "&H000000FF")
     OutlineColour = style_props.get("OutlineColour", "&H00000000")
@@ -180,14 +185,16 @@ def render_video():
         data = request.json
         images = data.get("images", [])
         audio_url = data.get("audioUrl")
-        bg_music_url = data.get("bgMusicUrl")
+        bg_music_url = data.get("bgMusicUrl")  # optional background music
         durations = data.get("durations", [])
         captions = data.get("captions", [])
         watermark_url = data.get("watermarkUrl")
-        caption_obj = data.get("caption")
-        captionStyleOverrides = data.get("captionStyle")
+        caption_obj = data.get("caption")  # may contain {name: "Youtuber"} or full captionStyle
+        captionStyleOverrides = data.get("captionStyle")  # optional overrides
 
+        # -----------------------------
         # Basic validation
+        # -----------------------------
         if not images or not audio_url:
             return jsonify({"error": "Missing images or audioUrl"}), 400
         if not durations or len(durations) != len(images):
@@ -195,105 +202,110 @@ def render_video():
         if captions is None:
             captions = []
 
-        print("=" * 60)
-        print("🎬 VIDEO RENDER REQUEST")
-        print("=" * 60)
-        print(f"Number of images: {len(images)}")
-        print(f"Number of captions: {len(captions)}")
-        print(f"Durations: {durations}")
-        print(f"Total video duration: {sum(durations):.2f}s")
-        print(f"BGM present: {bool(bg_music_url)}")
-        print(f"Caption preset: {caption_obj}")
-        print(f"Caption overrides: {captionStyleOverrides}")
-        print("=" * 60)
+        print("Number of images:", len(images))
+        print("Number of captions:", len(captions))
+        print("Durations:", durations)
+        print("bgMusicUrl present:", bool(bg_music_url))
+        print("caption preset/style:", caption_obj, captionStyleOverrides)
 
+        # -----------------------------
         # Handle narration audio (base64 or URL)
-        audio_file = os.path.join(TEMP_DIR, f"audio_{uuid.uuid4()}.mp3")
+        # -----------------------------
+        audio_file = f"/tmp/audio_{uuid.uuid4()}.mp3"
         if audio_url.startswith("data:audio"):
             header, b64 = audio_url.split(",", 1)
             with open(audio_file, "wb") as f:
                 f.write(base64.b64decode(b64))
-            print("✅ Audio saved from base64")
+            print("Audio saved from base64")
         else:
             download_file(audio_url, audio_file)
-            print("✅ Audio downloaded from URL")
+            print("Audio downloaded from URL")
 
+        # -----------------------------
         # Handle background music (optional)
-        bg_music_raw = bg_music_url
+        # -----------------------------
+        bgm_file = None
+        if bg_music_url:
+            bgm_file = f"/tmp/bgm_{uuid.uuid4()}.mp3"
+            if bg_music_url.startswith("data:audio"):
+                header, b64 = bg_music_url.split(",", 1)
+                with open(bgm_file, "wb") as f:
+                    f.write(base64.b64decode(b64))
+                print("BGM saved from base64")
+            else:
+                download_file(bg_music_url, bgm_file)
+                print("BGM downloaded from URL")
 
-        # If it's a dict, extract the real audio value
-        if isinstance(bg_music_raw, dict):
-            bg_music_raw = bg_music_raw.get("url") or bg_music_raw.get("src") or bg_music_raw.get("base64")
-
-        # bg_music_raw must now be a string or None
-        if isinstance(bg_music_raw, str) and bg_music_raw.startswith("data:audio"):
-            header, b64 = bg_music_raw.split(",", 1)
-            filename_bgm = os.path.join(TEMP_DIR, f"bgm_{uuid.uuid4()}.mp3")
-            with open(filename_bgm, "wb") as f:
-                f.write(base64.b64decode(b64))
-            print("🎵 Background music saved from base64")
-            bg_music_file = filename_bgm
-
-        elif isinstance(bg_music_raw, str) and bg_music_raw.startswith("http"):
-            filename_bgm = os.path.join(TEMP_DIR, f"bgm_{uuid.uuid4()}.mp3")
-            download_file(bg_music_raw, filename_bgm)
-            print("🎵 Background music downloaded from URL")
-            bg_music_file = filename_bgm
-
-        else:
-            print("⚠️ No valid background music provided")
-            bg_music_file = None
-
-
+        # -----------------------------
         # Download images
+        # -----------------------------
         image_files = []
         for idx, img_url in enumerate(images):
-            filename = os.path.join(TEMP_DIR, f"img_{idx}_{uuid.uuid4()}.jpg")
+            filename = f"/tmp/img_{idx}_{uuid.uuid4()}.jpg"
             download_file(img_url, filename)
             image_files.append(filename)
-        print(f"✅ Downloaded {len(image_files)} images")
+        print("Downloaded images:", image_files)
 
+        # -----------------------------
         # Download watermark (optional)
+        # -----------------------------
         watermark_file = None
         if watermark_url:
-            watermark_file = os.path.join(TEMP_DIR, f"watermark_{uuid.uuid4()}.png")
+            watermark_file = f"/tmp/watermark_{uuid.uuid4()}.png"
             download_file(watermark_url, watermark_file)
-            print("✅ Downloaded watermark")
+            print("Downloaded watermark:", watermark_file)
 
+        # -----------------------------
         # Build FFmpeg inputs (images first)
+        # -----------------------------
         inputs = []
         for img_file, dur in zip(image_files, durations):
+            # keep each image as a looping input for 'dur' seconds
             inputs.extend(["-loop", "1", "-t", str(dur), "-i", img_file])
         if watermark_file:
             inputs.extend(["-i", watermark_file])
 
+        # After images (+ watermark), we'll add narration and optional bgm as inputs (below)
+        # audio indices: narration index = len(image_files) (+1 if watermark) ; bgm index = narration_index + 1 (if present)
+
+        # -----------------------------
         # Build filters for image scaling/crop + zoompan + transitions
+        # Key improvements:
+        # - Use aspect-preserving scale + crop to avoid stretching (cover)
+        # - Use fps=60 and duration frames based on 60 fps
+        # - Use 'normal' zoom amount for a pleasant Ken Burns
+        # -----------------------------
         filter_parts = []
-        fade_duration = 0.8
+        fade_duration = 0.8  # smooth transition in seconds
         target_w = 720
         target_h = 1280
-        fps = 30
-        zoom_speed_increase = 0.0015
+        fps = 60  # quality A requested 60fps
+        zoom_speed_increase = 0.0015  # normal zoom (tweak if you want slight/strong)
         zoom_speed_decrease = 0.0012
 
-        # For each image, create zoompan
+        # For each image input index i, create a pre-scale+crop then zoompan
         zoompan_streams = []
         for i in range(len(image_files)):
             dur = durations[i]
+            # duration in frames at target fps
             d_frames = int(dur * fps)
 
+            # Build an aspect-preserving scale then crop, then zoompan
+            # scale expression: scale by min ratio to fill target box without stretching
+            # then crop to exact size
+            # then zoompan applies the zoom over d_frames frames at fps
             if i % 2 == 0:
                 # zoom-in
                 zoompan = (
-                    f"[{i}:v]scale={target_w}:{target_h}:force_original_aspect_ratio=increase,"
+                    f"[{i}:v]scale='iw*min({target_w}/iw\\,{target_h}/ih)':'ih*min({target_w}/iw\\,{target_h}/ih)',"
                     f"crop={target_w}:{target_h},"
                     f"zoompan=z='min(zoom+{zoom_speed_increase},1.2)':"
                     f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={d_frames}:s={target_w}x{target_h}:fps={fps}[z{i}]"
                 )
             else:
-                # zoom-out
+                # zoom-out or slow pan
                 zoompan = (
-                    f"[{i}:v]scale={target_w}:{target_h}:force_original_aspect_ratio=increase,"
+                    f"[{i}:v]scale='iw*min({target_w}/iw\\,{target_h}/ih)':'ih*min({target_w}/iw\\,{target_h}/ih)',"
                     f"crop={target_w}:{target_h},"
                     f"zoompan=z='if(lte(zoom,1.0),1.2,max(1.0,zoom-{zoom_speed_decrease}))':"
                     f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={d_frames}:s={target_w}x{target_h}:fps={fps}[z{i}]"
@@ -302,7 +314,8 @@ def render_video():
             filter_parts.append(zoompan)
             zoompan_streams.append(f"[z{i}]")
 
-        # Build xfade transitions
+        # Build xfade transitions between zoompan streams (using offsets computed at fps)
+        # offset needs to be in seconds for xfade, so we'll keep seconds arithmetic
         offset_seconds = durations[0] - fade_duration if durations else 1.5
         last_stream = zoompan_streams[0]
 
@@ -311,6 +324,7 @@ def render_video():
             next_stream = zoompan_streams[i]
             out_stream = f"[v{i}]"
             transition = transitions[i % len(transitions)]
+            # xfade expects offset in seconds
             filter_parts.append(
                 f"{last_stream}{next_stream}xfade=transition={transition}:duration={fade_duration}:offset={offset_seconds}{out_stream}"
             )
@@ -319,42 +333,35 @@ def render_video():
 
         final_stream = last_stream
 
+        # -----------------------------
         # Overlay watermark if present
+        # -----------------------------
         if watermark_file:
             w_index = len(image_files)
-            # Scale to 10% of original size and add 50% transparency
-            filter_parts.append(
-                f"[{w_index}:v]scale=iw*0.1:ih*0.1,format=rgba,colorchannelmixer=aa=0.5[wm_scaled];"
-                f"{final_stream}[wm_scaled]overlay=W-w-20:H-h-20[wm_out]"
-            )
+            # overlay at bottom-right with 20px padding
+            filter_parts.append(f"{final_stream}[{w_index}:v]overlay=W-w-20:H-h-20[wm_out]")
             final_stream = "[wm_out]"
 
-        # Subtitles (ASS) generation
+        # -----------------------------
+        # Subtitles (ASS) generation & dynamic style
+        # Accepts either:
+        # - caption_obj = { "name": "Youtuber" } (preset)
+        # - captionStyleOverrides = { "Fontsize": 52, "PrimaryColour": "&H00FF00FF", ... }
+        # - captions = [{start,end,word}, ...]
+        # -----------------------------
         subtitle_file = None
         if captions and len(captions) > 0:
-            subtitle_filename = f"subs_{uuid.uuid4().hex[:8]}.ass"
-            subtitle_file = os.path.join(TEMP_DIR, subtitle_filename)
-            
+            subtitle_file = f"/tmp/subtitles_{uuid.uuid4()}.ass"
             # Determine style props
             preset_name = None
             overrides = None
-            
-            # Handle both string and dict formats
             if isinstance(caption_obj, dict):
                 preset_name = caption_obj.get("name")
-            elif isinstance(caption_obj, str):
-                preset_name = caption_obj
-            
             if captionStyleOverrides and isinstance(captionStyleOverrides, dict):
                 overrides = captionStyleOverrides
 
             style_props = caption_preset_to_ass_style(preset_name or "Default", overrides)
             style_line = build_ass_style_line("Default", style_props)
-
-            print(f"📝 Creating subtitles with preset: {preset_name or 'Default'}")
-            print(f"   Font: {style_props['Fontname']}, Size: {style_props['Fontsize']}")
-            print(f"   Color: {style_props['PrimaryColour']}")
-            print(f"   Outline: {style_props['Outline']}, Shadow: {style_props['Shadow']}")
 
             ass_content = (
                 "[Script Info]\n"
@@ -390,93 +397,99 @@ def render_video():
             with open(subtitle_file, "w", encoding="utf-8") as f:
                 f.write(ass_content)
 
-            print(f"✅ Created subtitle file: {subtitle_file}")
-            print(f"   Total captions: {len(captions)}")
+            print(f"Created subtitle file: {subtitle_file}")
 
-            # Properly escape path for FFmpeg
-            subtitle_file_escaped = subtitle_file.replace('\\', '\\\\\\\\').replace(':', '\\\\:')
-            filter_parts.append(f"{final_stream}subtitles={subtitle_file_escaped}[caption_out]")
+            # Use subtitles filter (ASS supports Unicode nicely). Also set force_style based on style props for runtime tweaks.
+            # Build a small force_style string if overrides present (font size / color / outline)
+            fs_elems = []
+            if "Fontsize" in style_props:
+                fs_elems.append(f"Fontsize={style_props['Fontsize']}")
+            if "PrimaryColour" in style_props:
+                # ASS PrimaryColour is &HAABBGGRR. We already stored strings like &H00RRGGBB (approx), keep them as is.
+                fs_elems.append(f"PrimaryColour={style_props['PrimaryColour']}")
+            if "Outline" in style_props:
+                fs_elems.append(f"Outline={style_props['Outline']}")
+            if "Shadow" in style_props:
+                fs_elems.append(f"Shadow={style_props['Shadow']}")
+            if "Alignment" in style_props:
+                fs_elems.append(f"Alignment={style_props['Alignment']}")
+            if "MarginV" in style_props:
+                fs_elems.append(f"MarginV={style_props['MarginV']}")
+
+            force_style_str = ",".join(fs_elems)
+            filter_parts.append(f"{final_stream}subtitles={subtitle_file}:force_style='{force_style_str}'[caption_out]")
             final_stream = "[caption_out]"
 
-        # Final format + enhancements
+        # -----------------------------
+        # Final format + color / sharpen enhancements
+        # - scale final output (Lanczos) to ensure crispness (we already built frames in target size)
+        # - slight unsharp and eq for punchy look
+        # -----------------------------
+        # Apply final format and small enhancements
+        # We append format at the end; unsharp & eq could be added here as needed.
         filter_parts.append(f"{final_stream}format=yuv420p,unsharp=5:5:0.8,eq=contrast=1.05:saturation=1.08[final]")
         filter_complex = ";".join(filter_parts)
+        print("Filter complex:", filter_complex)
 
-        # Prepare output
-        output_file = os.path.join(TEMP_DIR, f"output_{uuid.uuid4()}.mp4")
+        # -----------------------------
+        # Prepare output and command
+        # -----------------------------
+        output_file = f"/tmp/output_{uuid.uuid4()}.mp4"
 
-        # Add narration audio input
+        # Add narration and bgm inputs after image inputs
+        # narration index:
         audio_input_index = len(image_files)
         if watermark_file:
             audio_input_index += 1
 
         # Build command
         cmd = ["ffmpeg", "-y", *inputs, "-i", audio_file]
-        if bg_music_file:
-            cmd.extend(["-i", bg_music_file])
+        if bgm_file:
+            cmd.extend(["-i", bgm_file])
 
+        # Now add filter_complex
         cmd.extend(["-filter_complex", filter_complex])
 
-        # Audio mixing (FIXED - BGM trimming)
+        # Add audio mixing mapping:
+        # If bgm exists, create a mixed audio stream in filter_complex by appending appropriate audio filters.
+        # To keep it safe, we'll append audio mixing filter to filter_complex string above if bgm exists.
+        # But since filter_complex is already defined, we'll instead append audio mixing filters now by extending filter_complex:
+        # (We will construct the audio mixing filters and re-run ffmpeg with the updated filter_complex)
+        # NOTE: For simplicity, we will append the audio mix chain into filter_complex before handing to ffmpeg
+
+        # Build audio mixing filter section and update cmd mapping
+        # narration input stream index is `audio_input_index`
+        # bgm input (if exists) index is audio_input_index + 1
         audio_filters = []
-        if bg_music_file:
+        if bgm_file:
             bgm_index = audio_input_index + 1
-            
-            # Calculate narration duration
-            if captions and len(captions) > 0:
-                narration_duration = max(
-                    captions[-1].get("end", 0),
-                    sum(durations)
-                )
-            else:
-                narration_duration = sum(durations)
-            
-            # Add small buffer
-            narration_duration = narration_duration + 0.5
-            
-            print(f"🎵 Audio mixing:")
-            print(f"   Narration duration: {narration_duration:.2f}s")
-            print(f"   BGM will be trimmed to match narration")
-            
-            # Process narration
-            audio_filters.append(
-                f"[{audio_input_index}:a]"
-                f"aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,"
-                f"volume=1.0[a_narr]"
-            )
-            
-            # Trim and process BGM
-            audio_filters.append(
-                f"[{bgm_index}:a]"
-                f"atrim=0:{narration_duration},"
-                f"asetpts=PTS-STARTPTS,"
-                f"aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,"
-                f"volume=0.25[a_bgm]"
-            )
-            
-            # Mix both
-            audio_filters.append(
-                f"[a_narr][a_bgm]"
-                f"amix=inputs=2:duration=first:dropout_transition=2,"
-                f"volume=2.0[aout]"
-            )
-            
+            # apply volume to bgm to keep narration clear; reduce bgm to ~0.25
+            audio_filters.append(f"[{audio_input_index}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume=1.0[a_narr]")
+            audio_filters.append(f"[{bgm_index}:a]aformat=sample_fmts=fltp:sample_rates=44100:channel_layouts=stereo,volume=0.30[a_bgm]")
+            audio_filters.append(f"[a_narr][a_bgm]amix=inputs=2:dropout_transition=2,volume=2.0[aout]")
+            # append audio filter parts to the filter_complex and map [aout]
+            # Note: we need to combine filter_complex and audio_filters into one string argument
+            # So update the filter_complex argument in cmd
             combined_filter = filter_complex + ";" + ";".join(audio_filters)
+            # replace the filter_complex entry in cmd with combined_filter
+            # find index of "-filter_complex" in cmd
             try:
                 fc_index = cmd.index("-filter_complex") + 1
                 cmd[fc_index] = combined_filter
             except ValueError:
                 cmd.extend(["-filter_complex", combined_filter])
+            # mapping: map [final] video and [aout] audio
             cmd.extend(["-map", "[final]", "-map", "[aout]"])
         else:
+            # no bgm: video [final], audio is the narration input stream index
             cmd.extend(["-map", "[final]", "-map", f"{audio_input_index}:a"])
 
-        # Video encoding settings (optimized)
+        # Video encoding settings (Quality A - max quality but 720p)
         cmd.extend([
             "-c:v", "libx264",
-            "-preset", "veryfast",
-            "-crf", "23",
-            "-profile:v", "main",
+            "-preset", "slow",   # better quality (slower). use 'slower' or 'veryslow' if you want even better quality.
+            "-crf", "17",       # high-quality
+            "-profile:v", "high",
             "-level", "4.1",
             "-pix_fmt", "yuv420p",
             "-c:a", "aac",
@@ -485,57 +498,47 @@ def render_video():
             output_file
         ])
 
-        print("🎬 Starting FFmpeg rendering...")
-        print(f"Command preview: ffmpeg -y [inputs] -filter_complex [...] [encoding options]")
+        print("FFmpeg CMD:", " ".join(cmd))
 
         process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        
+        print("FFmpeg Output:", process.stdout)
+        print("FFmpeg Error:", process.stderr)
+
         if process.returncode != 0:
-            print("❌ FFmpeg Error:")
-            print(process.stderr[-1000:])  # Last 1000 chars
-            return jsonify({"error": "FFmpeg failed", "details": process.stderr[-500:]}), 500
+            return jsonify({"error": "FFmpeg failed", "details": process.stderr}), 500
 
-        print("✅ FFmpeg completed successfully")
-
+        # -----------------------------
         # Clean up subtitle file
+        # -----------------------------
         if subtitle_file:
             try:
                 os.remove(subtitle_file)
             except:
                 pass
 
+        # -----------------------------
         # Return video as base64
+        # -----------------------------
         with open(output_file, "rb") as f:
             video_bytes = f.read()
         video_base64 = base64.b64encode(video_bytes).decode()
 
-        print(f"✅ Video encoded to base64 ({len(video_base64)} chars)")
-        print(f"📊 Video size: {len(video_bytes) / 1024 / 1024:.2f} MB")
-
         # Clean up temporary files
         try:
             os.remove(audio_file)
-            if bg_music_url:
-                os.remove(bg_music_url)
+            if bgm_file:
+                os.remove(bgm_file)
             os.remove(output_file)
             for img_file in image_files:
                 os.remove(img_file)
             if watermark_file:
                 os.remove(watermark_file)
-            print("✅ Cleanup completed")
         except Exception as e:
-            print(f"⚠️ Cleanup warning: {e}")
-
-        print("=" * 60)
-        print("✅ VIDEO RENDER COMPLETED SUCCESSFULLY")
-        print("=" * 60)
+            print(f"Cleanup warning: {e}")
 
         return jsonify({"videoBase64": video_base64})
 
     except Exception as e:
-        print("=" * 60)
-        print("❌ ERROR OCCURRED")
-        print("=" * 60)
         print("Error:", str(e))
         import traceback
         traceback.print_exc()
@@ -546,25 +549,11 @@ def render_video():
 # -----------------------------
 @app.get("/")
 def home():
-    return jsonify({
-        "status": "alive",
-        "service": "FFmpeg Video Renderer",
-        "version": "2.0",
-        "features": [
-            "Image slideshow with zoom/pan",
-            "Audio narration + background music",
-            "Word-by-word subtitles with presets",
-            "Watermark support",
-            "Optimized encoding"
-        ]
-    })
+    return "FFmpeg Renderer is alive!"
 
 # -----------------------------
 # Cloud Run Port Bind
 # -----------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    print("=" * 60)
-    print(f"🚀 Starting FFmpeg Renderer on port {port}")
-    print("=" * 60)
     app.run(host="0.0.0.0", port=port)

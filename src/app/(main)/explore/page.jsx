@@ -20,44 +20,62 @@ const ExplorePage = () => {
   const convex = useConvex();
   const { user } = useAuthContext();
   const [videos, setVideos] = useState([]);
-  const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const observer = useRef();
+  const [cursor, setCursor] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const userID = "j570vgvc7jtr0zbzhsedegmpax7tgvyh"
+  const userID = "j570vgvc7jtr0zbzhsedegmpax7tgvyh";
   const limit = 10;
 
   // load paginated videos
   const loadVideos = useCallback(async () => {
-    if (!user?._id) return;
+    if (isLoading || !hasMore) return;
 
-    const result = await convex.query(api.videoData.GetUserVideosPaginated, {
-      uid: userID,
-      skip: page * limit,
-      limit,
-    });
+    setIsLoading(true);
+    try {
+      const result = await convex.query(api.videoData.GetUserVideosPaginated, {
+        uid: userID,
+        limit,
+        ...(cursor ? { cursor } : {}),
+      });
 
-    if (result?.videos?.length < limit) setHasMore(false);
-    setVideos((prev) => [...prev, ...(result?.videos || [])]);
-  }, [page, convex, user]);
+      if (result) {
+        setVideos((prev) => {
+          // Avoid duplicates
+          const existingIds = new Set(prev.map(v => v._id));
+          const newVideos = result.videos.filter(v => !existingIds.has(v._id));
+          return [...prev, ...newVideos];
+        });
+        setCursor(result.continueCursor);
+        setHasMore(!result.isDone);
+      }
+    } catch (error) {
+      console.error("Failed to load videos:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [cursor, hasMore, convex, isLoading]);
 
   useEffect(() => {
-    loadVideos();
-  }, [loadVideos]);
+    // Initial load
+    if (videos.length === 0) {
+      loadVideos();
+    }
+  }, []); // Run once on mount
 
   // infinite scroll observer
   const lastVideoRef = useCallback(
     (node) => {
-      if (!hasMore) return;
+      if (isLoading || !hasMore) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
-          setPage((prev) => prev + 1);
+          loadVideos();
         }
       });
       if (node) observer.current.observe(node);
     },
-    [hasMore]
+    [isLoading, hasMore, loadVideos]
   );
 
   return (

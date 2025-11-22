@@ -28,7 +28,7 @@ const DashboardProvider = ({ children }) => {
       <AppSidebar />
       <div className="w-full">
         <AppHeader />
-        <div className="p-4">{children}</div>
+        <div className="">{children}</div>
       </div>
     </SidebarProvider>
   );

@@ -9,13 +9,12 @@ export const CreateVideoData = mutation({
     videoStyle: v.string(),
     caption: v.any(),
     voice: v.string(),
-    bgMusic: v.optional(v.object({ name: v.string(), src: v.string() })), // structured
+    bgMusic: v.optional(v.object({ name: v.string(), src: v.string() })),
     uid: v.id('users'),
     createdBy: v.string(),
-    credits: v.number() // only used to update user credits, not stored in videoData
+    credits: v.number()
   },
   handler: async (ctx, args) => {
-    // Insert video record
     const result = await ctx.db.insert('videoData', {
       title: args.title,
       topic: args.topic,
@@ -29,7 +28,6 @@ export const CreateVideoData = mutation({
       status: "pending",
     });
 
-    // Deduct credits from user
     await ctx.db.patch(args.uid, {
       credits: (args.credits || 0) - 1
     });
@@ -39,49 +37,52 @@ export const CreateVideoData = mutation({
 });
 
 export const UpdateVideoRecord = mutation({
-    args: {
-        recordId: v.id('videoData'),
-        audioUrl: v.string(),
-        images: v.any(),
-        captionJson: v.any(),
-        downloadUrl: v.optional(v.string())
-    },
-    handler: async (ctx, args) => {
-        const result = await ctx.db.patch(args.recordId, {
-            audioUrl: args.audioUrl,
-            captionJson: args.captionJson,
-            images: args.images,
-            status: "completed"
+  args: {
+    recordId: v.id('videoData'),
+    audioUrl: v.string(),
+    images: v.any(),
+    captionJson: v.any(),
+    downloadUrl: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.patch(args.recordId, {
+      audioUrl: args.audioUrl,
+      captionJson: args.captionJson,
+      images: args.images,
+      status: "completed"
+    });
+    return result;
+  }
+});
 
-        });
-        return result
-    }
-})
-
+// FIXED: Added pagination with .take() to limit results - optimized for fast loading
 export const GetUserVideos = query({
-    args: {
-        uid: v.id('users')
-    },
-    handler: async (ctx, args) => {
-        const result = await ctx.db.query('videoData')
-            .filter(q => q.eq(q.field('uid'), args.uid))
-            .order('desc')
-            .collect();
+  args: {
+    uid: v.id('users'),
+    limit: v.optional(v.number())
+  },
+  handler: async (ctx, args) => {
+    // Reduced to 15 videos max, safe limit to stay under 16MB and load fast
+    const limit = Math.min(args.limit || 15, 15);
+    
+    const result = await ctx.db.query('videoData')
+      .filter(q => q.eq(q.field('uid'), args.uid))
+      .order('desc')
+      .take(limit); // Fetch only 15 videos at a time
 
-        return result
-    }
-})
+    return result;
+  }
+});
 
 export const GetVideoById = query({
-    args: {
-        videoId: v.id('videoData')
-    },
-    handler: async (ctx, args) => {
-        const result = await ctx.db.get(args.videoId);
-        return result;
-    }
-})
-
+  args: {
+    videoId: v.id('videoData')
+  },
+  handler: async (ctx, args) => {
+    const result = await ctx.db.get(args.videoId);
+    return result;
+  }
+});
 
 export const EditVideoData = mutation({
   args: {
@@ -103,7 +104,6 @@ export const EditVideoData = mutation({
   },
 });
 
-
 export const RemoveMultipleVideos = mutation(async ({ db }, { videoIds }) => {
   for (const id of videoIds) {
     await db.delete(id);
@@ -111,31 +111,31 @@ export const RemoveMultipleVideos = mutation(async ({ db }, { videoIds }) => {
   return { success: true };
 });
 
+// Proper cursor-based pagination for efficient loading
 export const GetUserVideosPaginated = query({
   args: {
     uid: v.id("users"),
-    skip: v.optional(v.number()), // number of items to skip
-    limit: v.optional(v.number()), // number of items to fetch
+    paginationOpts: v.object({
+      numItems: v.number(),
+      cursor: v.union(v.string(), v.null())
+    })
   },
   handler: async (ctx, args) => {
-    const skip = args.skip || 0;
-    const limit = args.limit || 6;
-
-    const allVideos = await ctx.db
+    // Ensure numItems doesn't exceed safe limits
+    const safeNumItems = Math.min(args.paginationOpts.numItems, 20);
+    
+    const result = await ctx.db
       .query("videoData")
       .filter(q => q.eq(q.field("uid"), args.uid))
       .order("desc")
-      .collect();
+      .paginate({
+        numItems: safeNumItems,
+        cursor: args.paginationOpts.cursor
+      });
 
-    // simulate pagination
-    const paginated = allVideos.slice(skip, skip + limit);
-    const hasMore = skip + limit < allVideos.length;
-
-    return { videos: paginated, hasMore };
+    return result;
   },
 });
-
-// In convex/videoData.ts
 
 export const UpdateDownloadUrl = mutation({
   args: {

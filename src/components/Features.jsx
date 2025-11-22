@@ -3,10 +3,13 @@
 import React, { useState, useRef } from 'react'
 import { Captions, Download, Layers, Mic, NotepadText, Video as VideoIcon, Sparkles } from 'lucide-react'
 
+// 1. Import the hook
+import { useInView } from '@/hooks/use-in-view'
+
 // ⚠️ IN YOUR EDITOR: Uncomment the line below and delete the 'InteractiveBackground' component defined at the bottom of this file.
 import InteractiveBackground from './InteractiveBackground'
 
-// --- DATA (Gold & Black Theme) ---
+// --- DATA ---
 const featuresData = [
     {
         icon: VideoIcon,
@@ -48,22 +51,26 @@ const featuresData = [
 
 const Features = () => {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-    const containerRef = useRef(null);
+    
+    // 2. Initialize hook with a slight threshold so it loads just before the user sees it
+    const { ref, isInView } = useInView({ threshold: 0 });
 
     const handleMouseMove = (e) => {
-        if (!containerRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
+        if (!ref.current) return;
+        const rect = ref.current.getBoundingClientRect();
         setMousePosition({ 
             x: e.clientX - rect.left, 
             y: e.clientY - rect.top 
         });
     };
 
-    // --- Custom CSS for Gold Glow Effects --
     return (
         <div 
-            ref={containerRef}
-            className='relative min-h-screen bg-black text-white overflow-hidden feature-container font-sans selection:bg-yellow-500 selection:text-black'
+            ref={ref}
+            className='relative min-h-screen overflow-hidden feature-container font-sans transition-colors duration-300
+                     bg-gray-50 text-gray-900 
+                     dark:bg-black dark:text-white 
+                     selection:bg-yellow-500 selection:text-black'
             onMouseMove={handleMouseMove}
             style={{
                 '--mouse-x': `${mousePosition.x}px`,
@@ -71,33 +78,43 @@ const Features = () => {
             }}
         >
             
+            {/* 3. Performance: Only render the heavy background if the component is in view (or keep it mounted but hidden) */}
+            {/* Ideally, pass a 'paused={!isInView}' prop to InteractiveBackground if it supports it. 
+                If not, conditional rendering saves GPU resources. */}
+            {isInView && (
+                <div className="absolute inset-0 z-0">
+                    <InteractiveBackground />
+                </div>
+            )}
             
-            {/* Using the embedded background for preview */}
-            <InteractiveBackground />
-            
-            {/* Dark Overlay to ensure text legibility over interactive background */}
-            <div className="absolute inset-0 bg-black/60 z-0 pointer-events-none" />
+            {/* Overlays for readability */}
+            {/* Light: White fade. Dark: Black fade */}
+            <div className="absolute inset-0 z-0 pointer-events-none transition-colors duration-300 bg-white/70 dark:bg-black/60" />
 
             <div className='relative z-10 px-4 sm:px-6 py-24 max-w-7xl mx-auto'>
                 
-                {/* Header Section ( Matching Hero Style ) */}
+                {/* Header Section */}
                 <div className="text-center mb-20 space-y-6">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 backdrop-blur-md text-sm font-medium text-yellow-400 shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]">
-                        <Sparkles className="w-4 h-4 fill-yellow-400" />
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md text-sm font-medium shadow-sm transition-colors duration-300
+                                  bg-yellow-100 text-yellow-700 border border-yellow-200
+                                  dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20 dark:shadow-[0_0_15px_-3px_rgba(234,179,8,0.2)]">
+                        <Sparkles className="w-4 h-4 fill-yellow-600 dark:fill-yellow-400 text-yellow-600 dark:text-yellow-400" />
                         <span>MritX SG Features</span>
                     </div>
                     
-                    <h1 className='text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight'>
+                    <h1 className='text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight transition-colors duration-300 text-gray-900 dark:text-white'>
                         Everything You Need to <br className="hidden md:block" />
-                        <span className='bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400'>
+                        <span className='bg-clip-text text-transparent bg-gradient-to-r 
+                                       from-gray-900 via-gray-700 to-gray-500
+                                       dark:from-white dark:via-gray-200 dark:to-gray-400'>
                            Create Viral 
                         </span>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 ml-2">
-                            Clips
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-red-600 ml-2 drop-shadow-sm">
+                           Clips
                         </span>
                     </h1>
                     
-                    <p className="text-gray-400 max-w-2xl mx-auto text-lg md:text-xl leading-relaxed">
+                    <p className="max-w-2xl mx-auto text-lg md:text-xl leading-relaxed transition-colors duration-300 text-gray-600 dark:text-gray-400">
                         Unleash your creativity with our professional suite of AI tools. 
                         Designed for speed, built for engagement.
                     </p>
@@ -110,26 +127,41 @@ const Features = () => {
                             key={index}
                             className={`
                                 group relative feature-card rounded-3xl p-8 flex flex-col items-start text-left
-                                border border-white/10 bg-[#0a0a0a]/60 backdrop-blur-xl
-                                hover:bg-[#0a0a0a]/80 transition-all duration-300 overflow-hidden
+                                transition-all duration-300 overflow-hidden
                                 ${feature.layout}
+                                
+                                /* LIGHT MODE STYLES */
+                                bg-white border border-gray-200 shadow-sm hover:shadow-lg hover:border-yellow-400/50
+                                
+                                /* DARK MODE STYLES */
+                                dark:bg-[#0a0a0a]/60 dark:backdrop-blur-xl dark:border-white/10 dark:hover:bg-[#0a0a0a]/80 dark:shadow-none
                             `}
                         >
-                            {/* Icon Container (Gold Theme) */}
+                            {/* Icon Container */}
                             <div 
                                 className={`
-                                    mb-6 p-4 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-orange-500/5 
-                                    border border-yellow-500/20 group-hover:border-yellow-500/40
-                                    transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_0_30px_-10px_rgba(234,179,8,0.3)]
+                                    mb-6 p-4 rounded-2xl transition-all duration-500 group-hover:scale-105
+                                    
+                                    /* LIGHT MODE */
+                                    bg-yellow-400 border border-yellow-100 group-hover:border-yellow-400 group-hover:shadow-md
+                                    
+                                    /* DARK MODE */
+                                    dark:bg-gradient-to-br dark:from-yellow-500/10 dark:to-orange-500/5 
+                                    dark:border-yellow-500/20 dark:group-hover:border-yellow-500/40
+                                    dark:group-hover:shadow-[0_0_30px_-10px_rgba(234,179,8,0.3)]
                                 `}
                             >
-                                <feature.icon className="w-8 h-8 text-yellow-400" />
+                                <feature.icon className="w-8 h-8 text-black" />
                             </div>
 
-                            <h2 className='text-2xl font-bold mb-3 text-white group-hover:text-yellow-400 transition-colors'>
+                            <h2 className='text-2xl font-bold mb-3 transition-colors
+                                         text-gray-900 group-hover:text-yellow-600
+                                         dark:text-white dark:group-hover:text-yellow-400'>
                                 {feature.title}
                             </h2>
-                            <p className='text-gray-400 leading-relaxed group-hover:text-gray-300 transition-colors'>
+                            <p className='leading-relaxed transition-colors
+                                        text-gray-600 group-hover:text-gray-900
+                                        dark:text-gray-400 dark:group-hover:text-gray-300'>
                                 {feature.description}
                             </p>
 
@@ -145,6 +177,5 @@ const Features = () => {
         </div>
     )
 }
-
 
 export default Features

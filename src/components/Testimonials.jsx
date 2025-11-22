@@ -1,7 +1,9 @@
-// Testimonials.jsx
+'use client'
+
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Star } from 'lucide-react'
+import { Star, Quote } from 'lucide-react'
+import { useInView } from '@/hooks/use-in-view'
 
 // --- Sample Testimonial Data ---
 const testimonialsData = [
@@ -9,7 +11,7 @@ const testimonialsData = [
         quote: "This tool is a game-changer. I went from spending hours editing to creating 10 clips a day. My engagement is through the roof!",
         name: 'Sarah K.',
         title: 'TikTok Creator (500k+)',
-        image: 'https://i.pravatar.cc/150?img=1' // Using placeholder avatars
+        image: 'https://i.pravatar.cc/150?img=1'
     },
     {
         quote: "The AI voices are shockingly realistic. I was skeptical, but the quality is insane. It's like having a full production team.",
@@ -43,110 +45,140 @@ const testimonialsData = [
     }
 ]
 
-// --- Sub-Components for Clarity ---
+// --- INJECTED STYLES for Marquee ---
+const styleTag = `
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes scroll-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.animate-scroll-left {
+  animation: scroll-left 40s linear infinite;
+}
+.animate-scroll-right {
+  animation: scroll-right 40s linear infinite;
+}
+/* Pause on hover */
+.marquee-track:hover {
+  animation-play-state: paused !important;
+}
+`;
 
-// 1. The Marquee Component
-// This component handles the infinite scrolling animation
-const Marquee = ({ children, duration = 40, direction = 'left' }) => {
-    
-    const marqueeVariants = {
-        animate: {
-            x: direction === 'left' ? ['0%', '-50%'] : ['-50%', '0%'],
-            transition: {
-                x: {
-                    repeat: Infinity,
-                    repeatType: 'loop',
-                    duration: duration,
-                    ease: 'linear'
-                }
-            }
-        }
-    }
-
+// 1. Optimized Marquee Component
+const Marquee = ({ children, direction = 'left', isInView }) => {
     return (
-        <div className='w-full overflow-hidden'>
-            {/* We render the children twice for the seamless loop */}
-            <motion.div 
-                className='flex' 
-                variants={marqueeVariants} 
-                animate="animate"
+        <div className='w-full overflow-hidden group'>
+            <div 
+                className={`flex gap-6 w-max marquee-track ${direction === 'left' ? 'animate-scroll-left' : 'animate-scroll-right'}`}
+                // Crucial: Pause animation if not in view
+                style={{ animationPlayState: isInView ? 'running' : 'paused' }}
             >
+                {/* Render children twice for seamless loop */}
                 {children}
                 {children}
-            </motion.div>
+            </div>
         </div>
     )
 }
 
 // 2. The Testimonial Card
-// This is the card that uses our glassmorphism style
 const TestimonialCard = ({ quote, name, title, image }) => {
     return (
-        <div className='flex-shrink-0 w-80 md:w-96 mx-4 p-6
-                        rounded-2xl border border-white/10 bg-white/5 
-                        backdrop-blur-md'>
-            <div className='flex items-center mb-4'>
-                <img src={image} alt={name} className='w-12 h-12 rounded-full mr-4' />
+        <div className='flex-shrink-0 w-80 md:w-96 p-6 rounded-2xl relative overflow-hidden transition-all duration-300
+                      hover:-translate-y-1 hover:shadow-lg
+                      
+                      /* LIGHT MODE */
+                      bg-white border border-zinc-200 shadow-sm
+                      
+                      /* DARK MODE */
+                      dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-md dark:shadow-none'>
+            
+            {/* Decorative Quote Icon */}
+            <Quote className="absolute top-4 right-4 w-8 h-8 text-zinc-100 dark:text-white/5 fill-current rotate-180" />
+
+            <div className='flex items-center mb-4 relative z-10'>
+                <img 
+                    src={image} 
+                    alt={name} 
+                    className='w-12 h-12 rounded-full mr-4 object-cover border border-zinc-100 dark:border-white/10' 
+                />
                 <div>
-                    <h3 className='text-lg font-semibold'>{name}</h3>
-                    <p className='text-sm text-gray-400'>{title}</p>
+                    <h3 className='text-lg font-bold text-zinc-900 dark:text-white'>{name}</h3>
+                    <p className='text-sm text-zinc-500 dark:text-zinc-400'>{title}</p>
                 </div>
             </div>
-            <div className='flex mb-3'>
+            
+            <div className='flex mb-3 relative z-10'>
                 {[...Array(5)].map((_, i) => (
-                    <Star key={i} className='w-5 h-5 text-yellow-400 fill-yellow-400' />
+                    <Star key={i} className='w-4 h-4 text-yellow-400 fill-yellow-400' />
                 ))}
             </div>
-            <p className='text-gray-300 italic'>" {quote} "</p>
+            
+            <p className='text-zinc-600 dark:text-gray-300 italic leading-relaxed relative z-10'>
+                "{quote}"
+            </p>
         </div>
     )
 }
 
-
-// --- Main Testimonials Component ----
+// --- Main Component ----
 const Testimonials = () => {
-    // Split the data for two different rows
+    const { ref, isInView } = useInView({ threshold: 0 });
+    
     const row1 = testimonialsData.slice(0, Math.ceil(testimonialsData.length / 2))
     const row2 = testimonialsData.slice(Math.ceil(testimonialsData.length / 2))
 
     return (
-        <section className='py-24 text-white overflow-hidden'>
+        <section 
+            ref={ref}
+            className='py-24 overflow-hidden transition-colors duration-300 bg-zinc-50 dark:bg-black'
+        >
+            <style>{styleTag}</style>
+            
             {/* --- Section Title --- */}
-            <motion.h2 
-                className='text-3xl md:text-5xl text-center font-bold mb-4'
-                initial={{ opacity: 0, y: -20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.5 }}
-                transition={{ duration: 0.5 }}
-            >
-                Don't Just Take <span className='bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500'>Our Word...</span>
-            </motion.h2>
-            <motion.p 
-                className='text-lg text-gray-300 text-center mb-16 max-w-2xl mx-auto'
-                initial={{ opacity: 0, y: -10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.5 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-            >
-                See what top creators and marketers are saying about our platform.
-            </motion.p>
+            <div className="max-w-7xl mx-auto px-4 mb-16 text-center">
+                <motion.h2 
+                    className='text-3xl md:text-5xl font-bold mb-4 text-zinc-900 dark:text-white'
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.5 }}
+                >
+                    Don't Just Take <span className='bg-clip-text text-transparent bg-gradient-to-r from-yellow-500 to-orange-600 dark:from-yellow-400 dark:to-red-500'>Our Word...</span>
+                </motion.h2>
+                <motion.p 
+                    className='text-lg text-zinc-600 dark:text-gray-400 max-w-2xl mx-auto'
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={isInView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                    See what top creators and marketers are saying about our platform.
+                </motion.p>
+            </div>
 
             {/* --- Marquee Container --- */}
-            <div className='flex flex-col gap-y-6'>
+            <div className='flex flex-col gap-y-8'>
                 {/* Row 1: Scrolls Left */}
-                <Marquee duration={50} direction='left'>
+                <Marquee direction='left' isInView={isInView}>
                     {row1.map((item, index) => (
                         <TestimonialCard key={index} {...item} />
                     ))}
                 </Marquee>
 
                 {/* Row 2: Scrolls Right */}
-                <Marquee duration={60} direction='right'>
+                <Marquee direction='right' isInView={isInView}>
                     {row2.map((item, index) => (
                         <TestimonialCard key={index} {...item} />
                     ))}
                 </Marquee>
             </div>
+            
+            {/* Gradient Fades on Edges for Smoothness */}
+            <div className="absolute top-0 left-0 h-full w-20 md:w-32 bg-gradient-to-r from-zinc-50 to-transparent dark:from-black pointer-events-none z-10" />
+            <div className="absolute top-0 right-0 h-full w-20 md:w-32 bg-gradient-to-l from-zinc-50 to-transparent dark:from-black pointer-events-none z-10" />
+
         </section>
     )
 }

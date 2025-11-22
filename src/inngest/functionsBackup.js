@@ -6,7 +6,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
 import { getServices, renderMediaOnCloudrun } from '@remotion/cloudrun/client';
 import cloudinary from "@/lib/cloudinary";
-import fs from "fs";
+
 const ImagePromptScript = `Generate Image prompt of {style} style woth all details for each scene for 30 seconds video : script: {script} 
 - Just Give specifing image prompt depends on the story line
 - do not give camera angle umage prompt
@@ -25,7 +25,7 @@ export const GenerateVideoData = inngest.createFunction(
     { id: "generate-video-data" },
     { event: "generate-video-data" },
     async ({ event, step }) => {
-        const { script, topic, title, caption, bgMusic, videoStyle, voice, recordId } = event?.data;
+        const { script, topic, title, caption, bgMusic , videoStyle, voice, recordId } = event?.data;
         const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL);
 
         // -------------------------------
@@ -146,20 +146,20 @@ export const GenerateVideoData = inngest.createFunction(
                 // Calculate Image Durations (FIXED)
                 // -----------------------------
                 // Get total audio duration from last caption
-                const totalAudioDuration = GenerateCaptions.length > 0
-                    ? GenerateCaptions[GenerateCaptions.length - 1].end
+                const totalAudioDuration = GenerateCaptions.length > 0 
+                    ? GenerateCaptions[GenerateCaptions.length - 1].end 
                     : 10; // fallback to 10 seconds
-
+                
                 console.log("Total audio duration:", totalAudioDuration, "seconds");
-
+                
                 // Calculate duration per image (equal distribution)
                 const durationPerImage = totalAudioDuration / GenerateImages.length;
-
+                
                 // Create image durations array (one per image - MUST match images.length)
-                const imageDurations = GenerateImages.map(() =>
+                const imageDurations = GenerateImages.map(() => 
                     parseFloat(durationPerImage.toFixed(3))
                 );
-
+                
                 console.log("Image durations (one per image):", imageDurations);
                 console.log("Duration per image:", durationPerImage.toFixed(2) + "s");
 
@@ -190,17 +190,9 @@ export const GenerateVideoData = inngest.createFunction(
                 const payload = {
                     audioUrl: GenerateAudioFile,
                     images: GenerateImages,
-                    durations: imageDurations,
-                    captions: formattedCaptions,
-                    watermarkUrl: "https://res.cloudinary.com/diah8zonu/image/upload/v1763736573/logo_qq5xis.png",
-                    bgMusicUrl: bgMusic,
-                    // ✅ Add caption preset
-                    caption: caption?.name,
-                    captionStyle: {
-                        PrimaryColour: "&H000000FF",  // Red (BGR format)
-                        Fontsize: 22
-                    },
-
+                    durations: imageDurations,  // ✅ Now matches images.length
+                    captions: formattedCaptions, // With start/end times
+                    watermarkUrl: null // Optional
                 };
 
                 console.log("Payload summary:", {
@@ -217,20 +209,19 @@ export const GenerateVideoData = inngest.createFunction(
                 // -----------------------------
                 const response = await axios.post(
                     "https://video-renderer-780371904666.asia-south1.run.app/render",
-                    // "http://localhost:8080/render",
                     payload,
                     {
-                        headers: {
-                            "Content-Type": "application/json"
+                        headers: { 
+                            "Content-Type": "application/json" 
                         },
-                        timeout: 900000, // 5 minutes
+                        timeout: 300000, // 5 minutes
                         maxContentLength: Infinity,
                         maxBodyLength: Infinity,
                     }
                 );
 
                 console.log("✅ Cloud Run response received");
-
+                
                 // Cloud Run returns JSON with videoBase64
                 if (!response.data || !response.data.videoBase64) {
                     throw new Error("No video data received from Cloud Run");
@@ -270,12 +261,12 @@ export const GenerateVideoData = inngest.createFunction(
 
                 console.log("✅ RenderVideo step completed successfully");
                 console.log("Video URL:", videoUpload.secure_url);
-
+                
                 return videoUpload.secure_url;
 
             } catch (err) {
                 console.error("❌ Cloud Run or Cloudinary error:");
-
+                
                 if (err.response) {
                     console.error("Status:", err.response.status);
                     console.error("Data:", err.response.data);
@@ -285,7 +276,7 @@ export const GenerateVideoData = inngest.createFunction(
                 } else {
                     console.error("Error:", err.message);
                 }
-
+                
                 throw err;
             }
         });
